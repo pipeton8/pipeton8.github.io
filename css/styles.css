@@ -1,0 +1,82 @@
+body {
+  padding-top: 0;
+}
+
+/* @Fontawesome Icons */
+.personal-icon {
+  margin: 20px 10px 0;
+}
+
+/* @Containers */
+.container-fluid {
+  padding: 4% 5% 3%;
+}
+
+/* @Sections */
+.centered-section {
+  text-align: center;
+}
+
+.left-aligned-section {
+  text-align: left;
+}
+
+/* @ Nav Bar */
+.navbar-coloration {
+  background-color: purple;
+}
+
+.navbar .container-fluid {
+  padding: 0.5%;
+}
+
+/* @Title Section */
+#about-me .container-fluid {
+  text-align: justify;
+  min-height: max(97vh, 600px);
+}
+
+#about-me .row {
+  align-items: center;
+}
+
+#about-me .image-container {
+  text-align: center;
+}
+
+.about-me-text {
+  text-align: justify;
+}
+
+.title-image {
+  height: 70%;
+  width: 70%;
+  border-radius: 100%;
+}
+
+/* @Footer Section */
+#footer .container-fluid {
+}
+
+/* @Media queries */
+@media (max-width: 767px) {
+  body {
+    padding-top: 10%
+  }
+
+  /* @ Title media queries */
+  #about-me {
+    text-align: center;
+  }
+
+  #about-me .image-container {
+    padding:  0 0 3%;
+  }
+
+  .title-image {
+    height: 40%;
+    width: 40%;
+  }
+
+
+}
