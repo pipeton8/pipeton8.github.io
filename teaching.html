@@ -28,33 +28,25 @@
 <body>
 
   <!-- @ Nav Bar -->
-  <nav class="navbar fixed-top navbar-expand-lg navbar-dark navbar-coloration">
+  <nav class="navbar fixed-top navbar-expand-md navbar-dark navbar-coloration">
 
     <div class="container-fluid">
 
-      <a class="navbar-brand" href="">
+      <a class="navbar-brand" href="index.html">
         <h3>Felipe del Canto</h3>
       </a>
 
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggler">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="navbarToggler">
 
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="index.html#about-me">About me</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="index.html#research">Research</a>
-          </li>
-          <li class="nav-item">
-            <a class="active nav-link" href="teaching.html">Teaching</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="coursework.html">Coursework</a>
-          </li>
+          <a class="nav-link" href="index.html#about-me">About me</a>
+          <a class="nav-link" href="index.html#research">Research</a>
+          <a class="active nav-link" href="teaching.html">Teaching</a>
+          <a class="nav-link" href="coursework.html">Coursework</a>
         </ul>
       </div>
     </div>
@@ -72,13 +64,13 @@
         <h3 class="course-title"> EAE105A - Principles of Economics (in Spanish)</h3>
 
         <!-- @Class 1 -->
-        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-4">
+        <div class="row row-cols-1 row-cols-md-3 row-cols-xl-4 g-4">
           <div class="col">
             <div class="card h-100">
               <div class="card-body">
                 <h5 class="card-title">Class 1</h5>
                 <h6 class="card-subtitle mb-2 text-muted">Motivation</h6>
-                <p class="card-text">Description</p>
+                <!-- <p class="card-text">Description</p> -->
               </div>
               <div class="card-footer border-top-0 bg-transparent text-center">
 
@@ -94,7 +86,7 @@
               <div class="card-body">
                 <h5 class="card-title">Class 2</h5>
                 <h6 class="card-subtitle mb-2 text-muted">General Concepts</h6>
-                <p class="card-text">Description</p>
+                <!-- <p class="card-text">Description</p> -->
               </div>
               <div class="card-footer border-top-0 bg-transparent text-center">
 
@@ -110,7 +102,7 @@
               <div class="card-body">
                 <h5 class="card-title">Class 3</h5>
                 <h6 class="card-subtitle mb-2 text-muted">International Trade</h6>
-                <p class="card-text">Description</p>
+                <!-- <p class="card-text">Description</p> -->
               </div>
               <div class="card-footer border-top-0 bg-transparent text-center">
 
@@ -126,7 +118,7 @@
               <div class="card-body">
                 <h5 class="card-title">Class 4</h5>
                 <h6 class="card-subtitle mb-2 text-muted">Markets and Competition</h6>
-                <p class="card-text">Description</p>
+                <!-- <p class="card-text">Description</p> -->
               </div>
               <div class="card-footer border-top-0 bg-transparent text-center">
 
@@ -143,7 +135,7 @@
         <h3 class="course-title"> EAF2010 - Math Applications for Economics and Business (in Spanish)</h3>
 
         <!-- @Class 1 -->
-        <div class="row row-cols-2 row-cols-md-3 g-4">
+        <div class="row row-cols-1 row-cols-md-3 g-4">
           <div class="col">
             <div class="card h-100">
               <div class="card-body">
@@ -209,59 +201,6 @@
         </div>
       </div>
 
-      <!--
-        <div class="accordion" id="eae105a">
-          <!- - @Class 1 - ->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="eae105a-class1-title">
-              <button class="accordion-button collapsed class-title" type="button" data-bs-toggle="collapse" data-bs-target="#eae105a-class1-content" aria-expanded="false" aria-controls="eae105a-class1">
-                Class 1 -
-              </button>
-            </h2>
-            <div id="eae105a-class1-content" class="accordion-collapse collapse" aria-labelledby="eae105a-class1-title" data-bs-parent="#eae105a">
-              <div class="accordion-body">
-                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the
-                showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the
-                transition does limit overflow.
-              </div>
-            </div>
-          </div>
-
-          <!- - @Class 2 - ->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="eae105a-class2-title">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eae105a-class2-content" aria-expanded="false" aria-controls="eae105a-class2">
-                Class 2 -
-              </button>
-            </h2>
-            <div id="eae105a-class2-content" class="accordion-collapse collapse" aria-labelledby="eae105a-class2-title"  data-bs-parent="#eae105a">
-              <div class="accordion-body">
-                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the
-                showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the
-                transition does limit overflow.
-              </div>
-            </div>
-          </div>
-
-          <!- - @Class 3 - ->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="eae105a-class3-title">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eae105a-class3-content" aria-expanded="false" aria-controls="eae105a-class3">
-                Class 3 -
-              </button>
-            </h2>
-            <div id="eae105a-class3-content" class="accordion-collapse collapse" aria-labelledby="eae105a-class3-title" data-bs-parent="#eae105a">
-              <div class="accordion-body">
-                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the
-                showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the
-                transition does limit overflow.
-              </div>
-            </div>
-          </div>
-        </div>
-      -->
-
-
   </section>
 
   <!-- @Footer -->
@@ -274,6 +213,13 @@
   <!-- @JS and Popper -->
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+
+  <!-- @jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <!-- @ Additional Scripts -->
+  <script src="scripts.js"> </script>
+
 </body>
 
 </html>

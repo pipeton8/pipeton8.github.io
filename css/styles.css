@@ -29,7 +29,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* @Containers */
 .container-fluid {
-  padding: 10% 5% 0;
+  padding: 0 5% 0;
 }
 
 .image-container {
@@ -38,7 +38,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .section-container {
   min-height: max(100vh, 500px);
-  align-items: center;
+  /* margin: 0; */
+  padding-top: 100px;
 }
 
 /* @Sections */
@@ -76,8 +77,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* @ Nav Bar */
-a.nav-link:hover {
+.nav-link:hover {
   text-decoration: none;
+}
+
+.navbar-brand:hover {
+  text-decoration: none;
+  color: rgba(255,255,255, 0.75) !important;
 }
 
 .navbar-coloration {
@@ -90,6 +96,10 @@ a.nav-link:hover {
 }
 
 /* @Title Section */
+#about-me .section-container {
+  align-items: center;
+}
+
 .about-me-text {
   text-align: justify;
 }
@@ -110,11 +120,11 @@ a.nav-link:hover {
 
 /* @Teaching Section */
 .course-container {
-  padding-bottom: 5%;
+  padding-bottom: 5rem;
 }
 
 .course-title {
-  padding-bottom: 2%;
+  padding-bottom: 20px;
 }
 
 .course-container .card-footer {
@@ -146,11 +156,15 @@ a.nav-link:hover {
 
   /* @Containers media queries */
   .container-fluid {
-    padding: 15% 5% 0;
+    padding: 80px 5% 0;
   }
 
   /* @ Title media queries */
   #about-me {
+    text-align: center;
+  }
+
+  .about-me-text {
     text-align: center;
   }
 
@@ -159,6 +173,6 @@ a.nav-link:hover {
   }
 
   .title-image {
-    width: 40%;
+    width: 45%;
   }
 }
