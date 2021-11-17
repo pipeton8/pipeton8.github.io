@@ -70,6 +70,11 @@ h1, h2, h3, h4, h5, h6 {
   color: rgb(250, 250, 250);
 }
 
+/* @ Buttons */
+.download-button {
+  margin: 0 5%;
+}
+
 /* @ Nav Bar */
 a.nav-link:hover {
   text-decoration: none;
@@ -103,6 +108,22 @@ a.nav-link:hover {
   padding: 0 0 5%;
 }
 
+/* @Teaching Section */
+.course-container {
+  padding-bottom: 5%;
+}
+
+.course-title {
+  padding-bottom: 2%;
+}
+
+.course-container .card-footer {
+  padding-bottom: 5%;
+}
+
+
+/* @Courses Section */
+
 /* @Footer Section */
 #footer {
   text-align: center;
@@ -120,17 +141,6 @@ a.nav-link:hover {
   margin: 0;
 }
 
-/* @Teaching Section */
-.course-container {
-  padding-bottom: 5%;
-}
-
-.course-title {
-  padding-bottom: 2%;
-}
-
-
-/* @Courses Section */
 /* @Media queries */
 @media (max-width: 767px) {
 
