@@ -1,6 +1,5 @@
 /* @HTML Tags */
 body {
-  /* background-color: #FCF8F3; */
   background-color: #EEEEEE;
 }
 
@@ -11,6 +10,7 @@ a {
 
 a:hover {
   color: rgba(0, 173, 181,0.75);
+  text-decoration: underline;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -30,6 +30,10 @@ h1, h2, h3, h4, h5, h6 {
 /* @Containers */
 .container-fluid {
   padding: 10% 5% 0;
+}
+
+.image-container {
+  text-align: center;
 }
 
 .section-container {
@@ -67,9 +71,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* @ Nav Bar */
-.navbar {
-  /* height: 50px;
-  align-items: center; */
+a.nav-link:hover {
+  text-decoration: none;
 }
 
 .navbar-coloration {
@@ -82,18 +85,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* @Title Section */
-#about-me .container-fluid {
-  text-align: justify;
-}
-
-#about-me .row {
-  align-items: center;
-}
-
-#about-me .image-container {
-  text-align: center;
-}
-
 .about-me-text {
   text-align: justify;
 }
