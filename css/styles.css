@@ -1,15 +1,40 @@
+/* @HTML Tags */
 body {
-  padding-top: 0;
+  /* background-color: #FCF8F3; */
+  background-color: #EEEEEE;
+}
+
+a {
+  color: rgba(0, 173, 181,1);
+  text-decoration: none;
+}
+
+a:hover {
+  color: rgba(0, 173, 181,0.75);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
 }
 
 /* @Fontawesome Icons */
 .personal-icon {
   margin: 20px 10px 0;
+  color: rgba(34, 40, 49, 1);
+}
+
+.personal-icon:hover {
+  color: rgba(34, 40, 49, .75);
 }
 
 /* @Containers */
 .container-fluid {
-  padding: 4% 5% 3%;
+  padding: 10% 5% 0;
+}
+
+.section-container {
+  min-height: max(100vh, 500px);
+  align-items: center;
 }
 
 /* @Sections */
@@ -21,19 +46,44 @@ body {
   text-align: left;
 }
 
+.section-title {
+  font-weight: bold;
+  padding-bottom: 40px;
+}
+
+/* @Accordion */
+.accordion-item {
+  background-color: #EEEEEE;
+}
+
+.accordion-button {
+  background-color: rgba(57, 62, 70, 0.75);
+  color : rgb(238, 238, 238)
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: rgba(57, 62, 70, 1);
+  color: rgb(250, 250, 250);
+}
+
 /* @ Nav Bar */
+.navbar {
+  /* height: 50px;
+  align-items: center; */
+}
+
 .navbar-coloration {
-  background-color: purple;
+  background-color: #393E46;
 }
 
 .navbar .container-fluid {
-  padding: 0.5%;
+  padding-top: 0.5%;
+  padding-bottom: 0.5%;
 }
 
 /* @Title Section */
 #about-me .container-fluid {
   text-align: justify;
-  min-height: max(97vh, 600px);
 }
 
 #about-me .row {
@@ -49,19 +99,53 @@ body {
 }
 
 .title-image {
-  height: 70%;
   width: 70%;
   border-radius: 100%;
 }
 
-/* @Footer Section */
-#footer .container-fluid {
+/* @Research Section */
+.research-subsection {
+  padding-bottom: 2%;
 }
 
+.research-element {
+  padding: 0 0 5%;
+}
+
+/* @Footer Section */
+#footer {
+  text-align: center;
+  background-color: #00ADB5;
+  color: #fff;
+}
+
+#footer .container-fluid {
+  align-items: center;
+  text-align: center;
+  padding: 2% 5%;
+}
+
+#footer p {
+  margin: 0;
+}
+
+/* @Teaching Section */
+.course-container {
+  padding-bottom: 5%;
+}
+
+.course-title {
+  padding-bottom: 2%;
+}
+
+
+/* @Courses Section */
 /* @Media queries */
 @media (max-width: 767px) {
-  body {
-    padding-top: 10%
+
+  /* @Containers media queries */
+  .container-fluid {
+    padding: 15% 5% 0;
   }
 
   /* @ Title media queries */
@@ -70,13 +154,10 @@ body {
   }
 
   #about-me .image-container {
-    padding:  0 0 3%;
+    padding: 0 0 3%;
   }
 
   .title-image {
-    height: 40%;
     width: 40%;
   }
-
-
 }
