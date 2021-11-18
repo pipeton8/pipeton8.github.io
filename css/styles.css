@@ -1,15 +1,23 @@
+/* @ Documentation */
+/*
+  Color pallete obtained in colorhunt.co. Specific color palette:
+    https://colorhunt.co/palette/334257476072548ca8eeeeee
+
+*/
 /* @HTML Tags */
 body {
-  background-color: #EEEEEE;
+  background-color: rgb(238, 238, 238);
+  font-family: 'Merriweather Sans', sans-serif;
+  font-weight: 300;
 }
 
 a {
-  color: rgba(0, 173, 181,1);
+  color: rgb(84, 140, 168);
   text-decoration: none;
 }
 
 a:hover {
-  color: rgba(0, 173, 181,0.75);
+  color: rgb(84, 140, 168);
   text-decoration: underline;
 }
 
@@ -20,11 +28,12 @@ h1, h2, h3, h4, h5, h6 {
 /* @Fontawesome Icons */
 .personal-icon {
   margin: 20px 10px 0;
-  color: rgba(34, 40, 49, 1);
+  color: rgb(51, 66, 87);
 }
 
 .personal-icon:hover {
-  color: rgba(34, 40, 49, .75);
+  color: rgb(51, 66, 87);
+  color: rgba(51, 66, 87, .75);
 }
 
 /* @Containers */
@@ -38,7 +47,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .section-container {
   min-height: max(100vh, 500px);
-  /* margin: 0; */
   padding-top: 100px;
 }
 
@@ -52,23 +60,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .section-title {
-  font-weight: bold;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
   padding-bottom: 40px;
-}
-
-/* @Accordion */
-.accordion-item {
-  background-color: #EEEEEE;
-}
-
-.accordion-button {
-  background-color: rgba(57, 62, 70, 0.75);
-  color : rgb(238, 238, 238)
-}
-
-.accordion-button:not(.collapsed) {
-  background-color: rgba(57, 62, 70, 1);
-  color: rgb(250, 250, 250);
 }
 
 /* @ Buttons */
@@ -77,17 +71,40 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* @ Nav Bar */
-.nav-link:hover {
-  text-decoration: none;
+.navbar {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+}
+
+.navbar-coloration {
+  background-color: rgb(51, 66, 87);
+}
+
+.navbar-brand {
+  color: rgb(238, 238, 238);
+  font-size: 1.5rem;
+  font-weight: 500;
 }
 
 .navbar-brand:hover {
   text-decoration: none;
-  color: rgba(255,255,255, 0.75) !important;
+  color: rgb(179, 179, 179);
+  color: rgba(238, 238, 238, 0.75);
 }
 
-.navbar-coloration {
-  background-color: #393E46;
+.nav-link {
+  color: rgb(131, 131, 131);
+  color: rgba(238, 238, 238, 0.55);
+}
+
+.nav-link:hover {
+  text-decoration: none;
+  color: rgb(179, 179, 179);
+  color: rgba(238, 238, 238, 0.75);
+}
+
+.nav-link.active {
+  color: rgb(238, 238, 238);
 }
 
 .navbar .container-fluid {
@@ -118,6 +135,11 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0 0 5%;
 }
 
+.paper-title {
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
 /* @Teaching Section */
 .course-container {
   padding-bottom: 5rem;
@@ -125,20 +147,21 @@ h1, h2, h3, h4, h5, h6 {
 
 .course-title {
   padding-bottom: 20px;
+  font-family: "Montserrat", sans-serif;
 }
 
 .course-container .card-footer {
   padding-bottom: 5%;
 }
 
-
 /* @Courses Section */
-
 /* @Footer Section */
 #footer {
   text-align: center;
-  background-color: #00ADB5;
-  color: #fff;
+  background-color: rgb(71, 96, 114);
+  color: rgb(238, 238, 238);
+  font-family: "Montserrat", sans-serif;
+  font-weight: 300;
 }
 
 #footer .container-fluid {
