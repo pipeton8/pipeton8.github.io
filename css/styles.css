@@ -1,9 +1,46 @@
 /* @ Documentation */
-/*
-  Color pallete obtained in colorhunt.co. Specific color palette:
-    https://colorhunt.co/palette/334257476072548ca8eeeeee
 
-*/
+/* Color pallete obtained in colorhunt.co. Specific color palette: https://colorhunt.co/palette/334257476072548ca8eeeeee */
+
+
+
+/* @Font tests */
+.lato {
+  font-family: "Lato", sans-serif;
+}
+
+.ubuntu {
+  font-family: "Ubuntu", sans-serif;
+}
+
+.merriweather {
+  font-family: "Merriweather Sans", sans-serif;
+}
+
+.montserrat {
+  font-family: "Montserrat", sans-serif;
+}
+
+.open-sans {
+  font-family: "Open sans", sans-serif;
+}
+
+.fw-300 {
+  font-weight: 300;
+}
+
+.fw-400 {
+  font-weight: 400;
+}
+
+.fw-500 {
+  font-weight: 500;
+}
+
+.fw-700 {
+  font-weight: 700;
+}
+
 /* @HTML Tags */
 body {
   background-color: rgb(238, 238, 238);
@@ -38,16 +75,17 @@ h1, h2, h3, h4, h5, h6 {
 
 /* @Containers */
 .container-fluid {
-  padding: 0 5% 0;
+  padding: 0 5%;
 }
 
 .image-container {
   text-align: center;
+  margin: auto 0;
 }
 
 .section-container {
-  min-height: max(100vh, 500px);
-  padding-top: 100px;
+  min-height: max(90vh, 500px);
+  padding-top: 120px;
 }
 
 /* @Sections */
@@ -82,7 +120,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .navbar-brand {
   color: rgb(238, 238, 238);
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   font-weight: 500;
 }
 
@@ -112,13 +150,45 @@ h1, h2, h3, h4, h5, h6 {
   padding-bottom: 0.5%;
 }
 
-/* @Title Section */
-#about-me .section-container {
-  align-items: center;
+.toggler-icon {
+    display: block;
+    background-color: rgb(238,238,238);
+    height: 2px;
+    width: 26px;
+    margin: 5px 0 ;
+    opacity: 0.8;
+    transition: all 0.2s;
+    transform-origin: center left;
 }
 
+.custom-toggler:not(.collapsed) .top-bar {
+    margin-top: 0.3em;
+}
+
+.custom-toggler:not(.collapsed) .top-bar {
+    transform: translate(15%, -100%) rotate(45deg);
+}
+
+.custom-toggler:not(.collapsed) .middle-bar {
+    opacity: 0;
+}
+
+.custom-toggler:not(.collapsed) .bottom-bar {
+    transform: translate(15%, 100%) rotate(-45deg) ;
+}
+
+.custom-toggler .top-bar {
+    transform: translate(0%, 0%) rotate(0deg) ;
+}
+
+.custom-toggler .bottom-bar {
+    transform: translate(0%, 0%) rotate(0deg) ;
+}
+
+/* @Title Section */
 .about-me-text {
   text-align: justify;
+  margin: auto 0;
 }
 
 .title-image {
@@ -148,6 +218,7 @@ h1, h2, h3, h4, h5, h6 {
 .course-title {
   padding-bottom: 20px;
   font-family: "Montserrat", sans-serif;
+  font-weight:
 }
 
 .course-container .card-footer {
@@ -174,12 +245,24 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 
-/* @Media queries */
+/* @Medium and large media queries */
+@media (min-width: 768px) {
+  /* @ Title media queries */
+  #about-me .section-container {
+    padding: auto 0;
+  }
+}
+
+/* @Small Media queries */
 @media (max-width: 767px) {
 
   /* @Containers media queries */
   .container-fluid {
-    padding: 80px 5% 0;
+    padding: 0 5%;
+  }
+
+  .section-container {
+    padding-top: 100px;
   }
 
   /* @ Title media queries */
