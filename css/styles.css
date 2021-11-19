@@ -4,6 +4,11 @@
 
 
 /* @HTML Tags */
+
+html {
+  scroll-behavior: auto !important;
+}
+
 body {
   background-color: rgb(238, 238, 238);
   font-family: 'Merriweather Sans', sans-serif;
