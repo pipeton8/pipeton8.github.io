@@ -185,6 +185,23 @@ h1, h2, h3, h4, h5, h6 {
   font-weight:
 }
 
+.class-item {
+  font-size: 0.875rem;
+  align-items: center;
+}
+
+.slides-button {
+  color: rgb(238,238,238);
+  background-color: rgb(71, 96, 114);
+}
+
+.slides-button:hover {
+  background-color: rgb(238,238,238);
+  color: rgb(71, 96, 114);
+  border-color: rgb(71, 96, 114);
+  text-decoration: none;
+}
+
 /* @Courses Section */
 /* @Footer Section */
 #footer {
