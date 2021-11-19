@@ -3,44 +3,6 @@
 /* Color pallete obtained in colorhunt.co. Specific color palette: https://colorhunt.co/palette/334257476072548ca8eeeeee */
 
 
-
-/* @Font tests */
-.lato {
-  font-family: "Lato", sans-serif;
-}
-
-.ubuntu {
-  font-family: "Ubuntu", sans-serif;
-}
-
-.merriweather {
-  font-family: "Merriweather Sans", sans-serif;
-}
-
-.montserrat {
-  font-family: "Montserrat", sans-serif;
-}
-
-.open-sans {
-  font-family: "Open sans", sans-serif;
-}
-
-.fw-300 {
-  font-weight: 300;
-}
-
-.fw-400 {
-  font-weight: 400;
-}
-
-.fw-500 {
-  font-weight: 500;
-}
-
-.fw-700 {
-  font-weight: 700;
-}
-
 /* @HTML Tags */
 body {
   background-color: rgb(238, 238, 238);
@@ -187,6 +149,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* @Title Section */
 .about-me-text {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
   text-align: justify;
   margin: auto 0;
 }
