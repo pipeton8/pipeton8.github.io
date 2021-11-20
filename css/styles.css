@@ -20,6 +20,10 @@ a {
   text-decoration: none;
 }
 
+footer {
+  vertical-align: top;
+}
+
 a:hover {
   color: rgb(84, 140, 168);
   text-decoration: underline;
@@ -214,7 +218,6 @@ h1, h2, h3, h4, h5, h6 {
 /* @Courses Section */
 /* @Footer Section */
 #footer {
-  text-align: center;
   background-color: rgb(71, 96, 114);
   color: rgb(238, 238, 238);
   font-family: "Montserrat", sans-serif;
@@ -222,8 +225,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #footer .container-fluid {
-  align-items: center;
-  text-align: center;
   padding: 2% 5%;
 }
 
