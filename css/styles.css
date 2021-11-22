@@ -33,15 +33,23 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 
-/* @Fontawesome Icons */
+/* @Icons */
 .personal-icon {
   margin: 20px 10px 0;
   color: rgb(51, 66, 87);
 }
 
-.personal-icon:hover {
-  color: rgb(51, 66, 87);
-  color: rgba(51, 66, 87, .75);
+.clickable-icon:hover {
+  opacity: 0.75;
+}
+
+.title-icon {
+  color: rgb(33,37,41);
+}
+
+.title-icon:hover {
+  color: rgb(33,37,41);
+  opacity: 0.75;
 }
 
 /* @Containers */
@@ -78,6 +86,31 @@ h1, h2, h3, h4, h5, h6 {
 .download-button {
   margin: 0 5%;
 }
+
+.card-button {
+  color: #fff;
+  background-color: rgb(71, 96, 114);
+}
+
+.card-button:hover {
+  background-color: #fff;
+  color: rgb(71, 96, 114);
+  border-color: rgb(71, 96, 114);
+  text-decoration: none;
+}
+
+.colab-button {
+  /* color: rgb(33, 37, 41); */
+  background-color: rgb(249, 171, 0);
+}
+
+.colab-button:hover {
+  background-color: #fff;
+  color: rgb(249, 171, 0);
+  border-color: rgb(249, 171, 0);
+  text-decoration: none;
+}
+
 
 /* @ Nav Bar */
 .navbar {
@@ -157,10 +190,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* @Title Section */
-.personal-icons {
-  margin-top: 2%;
-}
-
 .about-me-text {
   font-family: "Montserrat", sans-serif;
   font-weight: 400;
@@ -203,19 +232,17 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
 }
 
-.slides-button {
-  color: rgb(238,238,238);
-  background-color: rgb(71, 96, 114);
+/* @Coursework Section */
+.coursework-card-title-wrapper {
+  align-items: center;
+  justify-content: space-between;
 }
 
-.slides-button:hover {
-  background-color: rgb(238,238,238);
-  color: rgb(71, 96, 114);
-  border-color: rgb(71, 96, 114);
-  text-decoration: none;
+.btn-wrapper {
+  align-items: center;
+  justify-content: flex-start;
 }
 
-/* @Courses Section */
 /* @Footer Section */
 #footer {
   background-color: rgb(71, 96, 114);
