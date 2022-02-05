@@ -130,6 +130,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .navbar-brand:hover {
   text-decoration: none;
+}
+
+.navbar-brand h1:hover {
   color: rgb(179, 179, 179);
   color: rgba(238, 238, 238, 0.75);
 }
@@ -257,6 +260,14 @@ h1, h2, h3, h4, h5, h6 {
 
 #footer p {
   margin: 0;
+}
+
+#footer a {
+  color: rgb(238, 238, 238);
+}
+
+#footer a:hover {
+  color: rgb(238, 238, 238);
 }
 
 /* @Medium and large media queries */
