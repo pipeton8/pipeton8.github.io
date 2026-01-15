@@ -43,3 +43,25 @@ var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggl
 var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
   return new bootstrap.Tooltip(tooltipTriggerEl)
 })
+
+// @Toggle Show/Hide text for subsection buttons
+document.addEventListener('DOMContentLoaded', function() {
+  var subsectionButtons = document.querySelectorAll('.subsection-btn');
+  
+  subsectionButtons.forEach(function(button) {
+    var targetId = button.getAttribute('data-bs-target');
+    var targetElement = document.querySelector(targetId);
+    
+    if (targetElement) {
+      targetElement.addEventListener('show.bs.collapse', function() {
+        button.textContent = 'Hide';
+        button.classList.add('inverted');
+      });
+      
+      targetElement.addEventListener('hide.bs.collapse', function() {
+        button.textContent = 'Show';
+        button.classList.remove('inverted');
+      });
+    }
+  });
+});

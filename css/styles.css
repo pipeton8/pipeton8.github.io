@@ -84,12 +84,14 @@ h1, h2, h3, h4, h5, h6 {
 
 /* @ Buttons */
 .download-button {
-  margin: 0 5%;
+  margin: 0;
 }
 
 .card-button {
   color: #fff;
   background-color: rgb(71, 96, 114);
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
 }
 
 .card-button:hover {
@@ -219,20 +221,234 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
 }
 
+.paper-abstract-toggle {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.paper-abstract-toggle a {
+  color: rgb(84, 140, 168);
+  cursor: pointer;
+}
+
+.paper-abstract-toggle a:hover {
+  text-decoration: underline;
+}
+
+/* Option 1: Icon-based chevron */
+.option-1 a .fa-chevron-down {
+  transition: transform 0.3s ease;
+  transform: rotate(-90deg); /* Points right when collapsed */
+}
+
+.option-1 a[aria-expanded="true"] .fa-chevron-down {
+  transform: rotate(0deg); /* Points down when expanded */
+}
+
+/* Option 2: Subtle button style */
+.abstract-btn {
+  background-color: transparent;
+  border: 1px solid rgb(84, 140, 168);
+  color: rgb(84, 140, 168);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.abstract-btn:hover {
+  background-color: rgb(84, 140, 168);
+  color: white;
+}
+
+.abstract-btn[aria-expanded="true"] {
+  background-color: rgb(84, 140, 168);
+  color: white;
+}
+
+/* Option 3: Badge style */
+.option-3 a {
+  text-decoration: none;
+}
+
+.abstract-badge {
+  background-color: rgba(84, 140, 168, 0.1);
+  color: rgb(84, 140, 168);
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.abstract-badge:hover {
+  background-color: rgba(84, 140, 168, 0.2);
+}
+
+.option-3 a[aria-expanded="true"] .abstract-badge {
+  background-color: rgb(84, 140, 168);
+  color: white;
+}
+
+/* Option 4: Plus icon */
+.option-4 a {
+  color: rgb(84, 140, 168);
+  text-decoration: none;
+}
+
+.option-4 a:hover {
+  text-decoration: underline;
+}
+
+/* Option 5: Underlined academic style */
+.underlined-style {
+  color: rgb(51, 66, 87) !important;
+  font-weight: 500;
+  border-bottom: 2px solid rgb(84, 140, 168);
+  padding-bottom: 2px;
+  text-decoration: none !important;
+}
+
+.underlined-style:hover {
+  color: rgb(84, 140, 168) !important;
+  border-bottom-color: rgb(51, 66, 87);
+}
+
+/* Option 6: Minimalist text with caret */
+.minimalist-style {
+  color: rgb(71, 96, 114) !important;
+  font-size: 0.9rem;
+  font-style: italic;
+  text-decoration: none !important;
+}
+
+.minimalist-style:hover {
+  color: rgb(84, 140, 168) !important;
+}
+
+.paper-abstract {
+  margin-top: 1rem;
+}
+
+.paper-abstract-content {
+  padding: 1rem 1.5rem;
+  background-color: rgba(84, 140, 168, 0.05);
+  border-left: 3px solid rgb(84, 140, 168);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  text-align: justify;
+}
+
 /* @Teaching Section */
 .course-container {
-  padding-bottom: 5rem;
+  padding-bottom: 1.5rem;
+}
+
+.course-container .collapse.show {
+  padding-bottom: 1.5rem;
 }
 
 .course-title {
   padding-bottom: 20px;
   font-family: "Montserrat", sans-serif;
-  font-weight:
+  font-weight: 500
+}
+.course-toggle {
+  color: rgb(51, 66, 87);
+  text-decoration: none;
+  display: inline-block;
 }
 
+.course-toggle:hover {
+  color: rgb(84, 140, 168);
+  text-decoration: none;
+}
+
+.course-toggle .fa-chevron-down {
+  transition: transform 0.3s ease;
+  transform: rotate(-90deg);
+}
+
+.course-toggle[aria-expanded="true"] .fa-chevron-down {
+  transform: rotate(0deg);
+}
+
+.card-body.subsection-header {
+  border-bottom: 1px solid #212529;
+}
+
+.card:has(.collapse:not(.show)) .subsection-header {
+  border-bottom: none;
+}
+
+.subsection-btn {
+  background-color: rgb(71, 96, 114);
+  border: 1px solid rgb(71, 96, 114);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.2rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 58px;
+  text-align: center;
+}
+
+.subsection-collapse {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.subsection-collapse .list-group {
+  margin: 0 !important;
+  border: none !important;
+}
+
+.subsection-collapse .list-group-item {
+  border-top-width: 1px !important;
+}
+
+.subsection-collapse .list-group-item:first-child {
+  border-top: none !important;
+}
+
+.subsection-collapse .list-group-item:last-child {
+  border-bottom-left-radius: calc(0.25rem - 1px);
+  border-bottom-right-radius: calc(0.25rem - 1px);
+}
+
+.list-group-item.class-item {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.subsection-btn:hover {
+  background-color: white;
+  color: rgb(71, 96, 114);
+  border-color: rgb(71, 96, 114);
+}
+
+.subsection-btn.inverted {
+  background-color: white;
+  color: rgb(71, 96, 114);
+  border-color: rgb(71, 96, 114);
+}
+
+.subsection-btn.inverted:hover {
+  background-color: rgb(71, 96, 114);
+  color: white;
+  border-color: rgb(71, 96, 114);
+}
 .class-item {
   font-size: 0.875rem;
   align-items: center;
+}
+
+.class-item .download-button {
+  margin-right: 0;
 }
 
 /* @Coursework Section */
