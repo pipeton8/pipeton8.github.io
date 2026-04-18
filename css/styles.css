@@ -497,6 +497,16 @@ h1, h2, h3, h4, h5, h6 {
 /* @Small Media queries */
 @media (max-width: 767px) {
 
+  /* @Navbar media queries */
+  .navbar-brand h1 {
+    font-size: 1.3rem;
+  }
+
+  .navbar .container-fluid {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+
   /* @Containers media queries */
   .container-fluid {
     padding: 0 5%;
