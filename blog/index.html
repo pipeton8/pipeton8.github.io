@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <script>
+    (function () {
+      var saved = localStorage.getItem('busyGamerColorMode');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
+  <title>The Busy Gamer - Game Reviews for Time-Strapped Players</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Game reviews and recommendations for busy gamers with limited time. Find out which games you can actually finish during the week.">
+  <meta name="keywords" content="gaming, game reviews, busy gamer, casual gaming, time management, quick gaming sessions">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16x16.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="mask-icon" href="../icons/safari-pinned-tab.svg" color="#334257">
+  <meta name="msapplication-TileColor" content="#eeeeee">
+  <meta name="theme-color" content="#ffffff">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/blog-styles.css">
+
+  <!-- Font Awesome -->
+  <script src="https://kit.fontawesome.com/d1e054ce54.js" crossorigin="anonymous"></script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-C1ECHGQLBQ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-C1ECHGQLBQ');
+  </script>
+</head>
+
+<body class="blog-body">
+
+  <!-- Navigation -->
+  <nav class="blog-nav">
+    <div class="blog-nav-container">
+      <a href="index.html" class="blog-nav-brand">The Busy Gamer</a>
+      <div class="blog-nav-right">
+        <ul class="blog-nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle color theme" onclick="toggleColorMode()">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Blog Header -->
+  <header class="blog-header">
+    <h1 class="blog-title">The Busy Gamer</h1>
+    <p class="blog-subtitle">Game reviews for time-strapped players</p>
+    <p class="blog-tagline">Because not everyone has 100+ hours to grind</p>
+  </header>
+
+  <!-- Main Content -->
+  <main class="blog-container">
+
+    <!-- Introduction -->
+    <div class="blog-intro">
+      <h2>Welcome to The Busy Gamer</h2>
+      <p>
+        Let's face it: adulting is hard, and gaming time is precious. I review games with one question in mind:
+        <strong>can you actually play this with limited time during the week?</strong>
+        Each review includes session length, time-to-complete estimates, and a Busy Gamer Rating™
+        to help you decide if it's worth your limited gaming hours.
+      </p>
+    </div>
+
+    <!-- Posts List -->
+    <div class="posts-list">
+
+      <!-- Post 1: Hades -->
+      <article class="post-list-item">
+        <div class="post-meta-row">
+          <span class="post-date">March 28, 2026</span>
+          <span class="post-category">Action Roguelike</span>
+        </div>
+        <h2 class="post-title">
+          <a href="posts/2026-03-hades-review.html">Hades - The Perfect Busy Gamer Game</a>
+        </h2>
+        <p class="post-excerpt">
+          A masterclass in respecting your time. Each run takes 20-45 minutes, with meaningful progression
+          even when you die. Perfect for squeezing in a quick session between responsibilities.
+        </p>
+        <div class="post-list-footer">
+          <div class="busy-gamer-rating">
+            <span>Busy Gamer</span>
+            <span class="rating-stars">★★★★★</span>
+          </div>
+          <a href="posts/2026-03-hades-review.html" class="read-more">Read Review</a>
+        </div>
+      </article>
+
+      <!-- Post 2: Elden Ring -->
+      <article class="post-list-item">
+        <div class="post-meta-row">
+          <span class="post-date">March 25, 2026</span>
+          <span class="post-category">Action RPG</span>
+        </div>
+        <h2 class="post-title">
+          <a href="posts/2026-03-elden-ring-review.html">Elden Ring - Worth the Time Investment?</a>
+        </h2>
+        <p class="post-excerpt">
+          A sprawling open-world adventure that demands 80+ hours. While incredible, this is a weekend warrior's
+          game, not for those with only an hour or two per week. But if you have the time...
+        </p>
+        <div class="post-list-footer">
+          <div class="busy-gamer-rating">
+            <span>Busy Gamer</span>
+            <span class="rating-stars">★★★☆☆</span>
+          </div>
+          <a href="posts/2026-03-elden-ring-review.html" class="read-more">Read Review</a>
+        </div>
+      </article>
+
+      <!-- Post 3: Vampire Survivors -->
+      <article class="post-list-item">
+        <div class="post-meta-row">
+          <span class="post-date">March 22, 2026</span>
+          <span class="post-category">Bullet Heaven</span>
+        </div>
+        <h2 class="post-title">
+          <a href="posts/2026-03-vampire-survivors-review.html">Vampire Survivors - Addictive 20-Minute Sessions</a>
+        </h2>
+        <p class="post-excerpt">
+          The definition of "just one more run." Each session is exactly 30 minutes (or less if you die).
+          Easy to pick up, insanely hard to put down. Perfect lunch break gaming.
+        </p>
+        <div class="post-list-footer">
+          <div class="busy-gamer-rating">
+            <span>Busy Gamer</span>
+            <span class="rating-stars">★★★★★</span>
+          </div>
+          <a href="posts/2026-03-vampire-survivors-review.html" class="read-more">Read Review</a>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Rating System Explanation -->
+    <div class="rating-key">
+      <h2>Understanding the Busy Gamer Rating™</h2>
+      <div class="rating-key-grid">
+        <div>
+          <div class="rating-key-stars">★★★★★</div>
+          <p>Perfect for busy schedules</p>
+        </div>
+        <div>
+          <div class="rating-key-stars">★★★★☆</div>
+          <p>Great with time commitment</p>
+        </div>
+        <div>
+          <div class="rating-key-stars">★★★☆☆</div>
+          <p>For weekend warriors</p>
+        </div>
+        <div>
+          <div class="rating-key-stars">★★☆☆☆</div>
+          <p>Significant time sink</p>
+        </div>
+        <div>
+          <div class="rating-key-stars">★☆☆☆☆</div>
+          <p>Only for the dedicated</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="blog-footer">
+    <p>
+      The Busy Gamer &mdash; a gaming blog by <a href="../index.html">Felipe del Canto</a>
+    </p>
+  </footer>
+
+  <script src="scripts/blog-theme.js"></script>
+
+</body>
+</html>

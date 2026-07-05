@@ -1,0 +1,653 @@
+/* =================================================================
+   THE BUSY GAMER - Gaming Blog Styles
+   Minimal editorial design (styleshout "Hola" inspired): serif body
+   copy, uppercase sans labels, flat neutral palette with a single
+   navy accent, text-led post list instead of card grids. Auto
+   light/dark via OS preference, with a manual override toggle
+   (data-theme attribute on <html>, remembered in localStorage).
+   ================================================================= */
+
+/* @ THEME VARIABLES */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f7f7;
+  --bg-card: #ffffff;
+  --text-primary: #151515;
+  --text-secondary: #6c6c6c;
+  --accent-primary: #1f3f5c;
+  --accent-secondary: #4d7a94;
+  --accent-negative: #8a4a42;
+  --accent-gold: #96742f;
+  --border-color: #e6e6e6;
+  --header-bg: #12233a;
+  --header-text: #f5f6f7;
+  --header-meta: #93b3cf;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-primary: #0d0e10;
+    --bg-secondary: #16181b;
+    --bg-card: #1a1c1f;
+    --text-primary: #ececec;
+    --text-secondary: #a3a3a3;
+    --accent-primary: #7fb0d1;
+    --accent-secondary: #5f96ab;
+    --accent-negative: #b0716a;
+    --accent-gold: #c2a05a;
+    --border-color: #2a2c2f;
+    --header-bg: #16283f;
+    --header-text: #f0f2f4;
+    --header-meta: #8fb4d4;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg-primary: #0d0e10;
+  --bg-secondary: #16181b;
+  --bg-card: #1a1c1f;
+  --text-primary: #ececec;
+  --text-secondary: #a3a3a3;
+  --accent-primary: #7fb0d1;
+  --accent-secondary: #5f96ab;
+  --accent-negative: #b0716a;
+  --accent-gold: #c2a05a;
+  --border-color: #2a2c2f;
+  --header-bg: #16283f;
+  --header-text: #f0f2f4;
+  --header-meta: #8fb4d4;
+}
+
+/* @ BASE STYLES */
+body.blog-body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  line-height: 1.75;
+  margin: 0;
+  padding: 0;
+}
+
+.blog-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.label-text {
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .12rem;
+}
+
+/* @ NAVIGATION */
+.blog-nav {
+  background-color: var(--bg-primary);
+  padding: 22px 0;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.blog-nav-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.blog-nav-brand {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.blog-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.blog-nav-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .08rem;
+}
+
+.blog-nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.blog-nav-links a:hover {
+  color: var(--accent-primary);
+}
+
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  color: var(--accent-primary);
+}
+
+/* @ MASTHEAD */
+.blog-header {
+  text-align: center;
+  padding: 90px 20px 70px;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+}
+
+.blog-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.6rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: .08rem;
+  color: var(--header-text);
+}
+
+.blog-subtitle {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--header-meta);
+  margin: 18px 0 0;
+}
+
+.blog-tagline {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .1rem;
+  color: var(--header-meta);
+  opacity: .8;
+  margin: 14px 0 0;
+}
+
+/* @ INTRO */
+.blog-intro {
+  text-align: center;
+  max-width: 700px;
+  margin: 60px auto 70px;
+}
+
+.blog-intro h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  letter-spacing: .08rem;
+  margin-bottom: 20px;
+}
+
+.blog-intro p {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+}
+
+.blog-intro strong {
+  color: var(--accent-primary);
+}
+
+/* @ POST LIST */
+.posts-list {
+  margin-bottom: 60px;
+}
+
+.post-list-item {
+  padding: 40px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.post-list-item:first-child {
+  padding-top: 0;
+}
+
+.post-meta-row {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .08rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.post-meta-row .post-category {
+  color: var(--accent-secondary);
+}
+
+.post-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+  line-height: 1.3;
+}
+
+.post-title a {
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.post-title a:hover {
+  color: var(--accent-primary);
+}
+
+.post-excerpt {
+  color: var(--text-secondary);
+  margin: 0 0 18px;
+  max-width: 640px;
+}
+
+.post-list-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.busy-gamer-rating {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .8rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-stars {
+  color: var(--accent-gold);
+  font-size: 1rem;
+}
+
+.read-more {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .06rem;
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px solid var(--accent-primary);
+  padding-bottom: 2px;
+  transition: opacity 0.2s ease;
+}
+
+.read-more:hover {
+  opacity: .7;
+  color: var(--accent-primary);
+}
+
+/* @ RATING KEY */
+.rating-key {
+  border-top: 1px solid var(--border-color);
+  padding-top: 50px;
+  margin-top: 20px;
+}
+
+.rating-key h2 {
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: .08rem;
+  margin-bottom: 40px;
+}
+
+.rating-key-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 24px;
+  text-align: center;
+}
+
+.rating-key-grid .rating-key-stars {
+  font-size: 1.4rem;
+  color: var(--accent-gold);
+  margin-bottom: 8px;
+}
+
+.rating-key-grid p {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* @ FULL POST PAGE */
+.post-full-header {
+  text-align: center;
+  padding: 80px 24px 60px;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+}
+
+.post-full-header .post-meta-row {
+  justify-content: center;
+  color: var(--header-meta);
+}
+
+.post-full-header .post-meta-row .post-category {
+  color: var(--header-meta);
+}
+
+.post-full-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin: 0 auto 18px;
+  max-width: 720px;
+  line-height: 1.3;
+  color: var(--header-text);
+}
+
+.post-full-meta {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .06rem;
+  color: var(--header-meta);
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.post-full {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 60px 24px 30px;
+}
+
+/* @ GAME INFO BOX */
+.game-info-box {
+  padding: 0 0 30px;
+  margin: 0 0 40px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.game-info-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .1rem;
+  margin-bottom: 20px;
+  color: var(--text-secondary);
+}
+
+.game-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px 30px;
+}
+
+.game-info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-info-label {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .06rem;
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+}
+
+.game-info-value {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+/* @ RATING SYSTEM */
+.rating-box {
+  text-align: center;
+  margin: 40px 0;
+  padding: 30px 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rating-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.rating-score {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin: 10px 0;
+}
+
+.rating-description {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  max-width: 480px;
+  margin: 10px auto 0;
+}
+
+/* @ PROS & CONS */
+.pros-cons-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 30px 40px;
+  margin: 40px 0;
+}
+
+.pros-title, .cons-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08rem;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pros-title {
+  color: var(--accent-secondary);
+}
+
+.cons-title {
+  color: var(--accent-negative);
+}
+
+.pros-list, .cons-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pros-list li, .cons-list li {
+  padding: 8px 0 8px 26px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.pros-list li:before {
+  content: "+";
+  position: absolute;
+  left: 0;
+  color: var(--accent-secondary);
+  font-weight: 700;
+}
+
+.cons-list li:before {
+  content: "\2212";
+  position: absolute;
+  left: 0;
+  color: var(--accent-negative);
+  font-weight: 700;
+}
+
+/* @ CONTENT SECTIONS */
+.content-section {
+  margin: 40px 0;
+}
+
+.content-section h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 40px 0 16px;
+  color: var(--text-primary);
+}
+
+.content-section p {
+  margin: 16px 0;
+  color: var(--text-primary);
+}
+
+/* @ VERDICT BOX */
+.verdict-box {
+  border-left: 3px solid var(--accent-primary);
+  padding: 4px 0 4px 24px;
+  margin: 50px 0;
+}
+
+.verdict-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08rem;
+}
+
+.verdict-text {
+  font-style: italic;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+/* @ BOTTOM META */
+.post-bottom-meta {
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: .92rem;
+}
+
+.post-bottom-meta p {
+  margin: 12px 0;
+}
+
+/* @ FOOTER */
+.blog-footer {
+  text-align: center;
+  padding: 40px 20px;
+  margin-top: 40px;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-family: 'Montserrat', sans-serif;
+  font-size: .82rem;
+}
+
+.blog-footer a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+.blog-footer a:hover {
+  text-decoration: underline;
+}
+
+/* @ BACK BUTTON */
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .06rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.back-button:hover {
+  color: var(--accent-primary);
+}
+
+/* @ RESPONSIVE */
+@media (max-width: 768px) {
+  .blog-title {
+    font-size: 2rem;
+  }
+
+  .blog-subtitle {
+    font-size: 1.05rem;
+  }
+
+  .blog-nav-container {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .blog-nav-right {
+    gap: 18px;
+  }
+
+  .post-full-title {
+    font-size: 1.6rem;
+  }
+
+  .game-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pros-cons-container {
+    grid-template-columns: 1fr;
+  }
+}

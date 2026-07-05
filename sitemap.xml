@@ -279,4 +279,34 @@
        <changefreq>daily</changefreq>
        <priority>0.6400</priority>
   </url>
+  <url>
+       <loc>https://pipeton8.github.io/blog/index.html</loc>
+       <lastmod>2026-04-01T00:00:00+00:00</lastmod>
+       <changefreq>weekly</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://pipeton8.github.io/blog/posts/2026-03-hades-review.html</loc>
+       <lastmod>2026-04-01T00:00:00+00:00</lastmod>
+       <changefreq>monthly</changefreq>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://pipeton8.github.io/blog/posts/2026-03-elden-ring-review.html</loc>
+       <lastmod>2026-04-01T00:00:00+00:00</lastmod>
+       <changefreq>monthly</changefreq>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://pipeton8.github.io/blog/posts/2026-03-vampire-survivors-review.html</loc>
+       <lastmod>2026-04-01T00:00:00+00:00</lastmod>
+       <changefreq>monthly</changefreq>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://pipeton8.github.io/blog/about.html</loc>
+       <lastmod>2026-07-05T00:00:00+00:00</lastmod>
+       <changefreq>monthly</changefreq>
+       <priority>0.6400</priority>
+  </url>
 </urlset>
