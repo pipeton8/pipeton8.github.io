@@ -6150,10 +6150,14 @@ async function initialize() {
   if (!selfTest.ok) console.error('ModernSlides round-trip self-test failed', selfTest);
   const params = new URLSearchParams(location.search);
   const query = params.get('deck') || params.get('xml');
+  const openBlankDeck = () => applyDeck(freshDeck(), {filename:'new-presentation.json', baseUrl:new URL('.', location.href).href, preservePrevious:false, fileHandle:null});
+  let startInEditor = false;
   try {
     if (query) {
       setStatus('Loading linked deck…', 'working');
       await loadFromQuery(query);
+    } else if (params.has('demo')) {
+      await applyDeck(buildSchumpeterDemoDeck(), {filename:'SchumpeterDemo.json', preservePrevious:true, fileHandle:null});
     } else {
       const saved = await deckStoreGet(STORAGE_CURRENT);
       if (saved) {
@@ -6165,18 +6169,22 @@ async function initialize() {
           fileHandle:null
         });
       } else {
-        await applyDeck(buildSchumpeterDemoDeck(), {filename:'SchumpeterDemo.json', preservePrevious:false, fileHandle:null});
+        await openBlankDeck();
+        startInEditor = true;
       }
     }
   } catch (error) {
     console.error(error);
-    alert(`Could not load the requested deck. Opening the Schumpeter demo instead.\n\n${error.message}`);
-    await applyDeck(buildSchumpeterDemoDeck(), {filename:'SchumpeterDemo.json', preservePrevious:false, fileHandle:null});
+    alert(`Could not load the requested deck. Opening a blank deck instead.\n\n${error.message}`);
+    await openBlankDeck();
+    startInEditor = true;
   }
   await refreshRestoreAvailability();
   document.body.classList.toggle('edit-mode', state.editMode);
   refreshAllViews({scrollThumb:false, preserveLive:false});
   requestAnimationFrame(() => fitFrameInSlot($('presentation-slot')));
+  // Touch and narrow screens stay in presentation view, where the Files control is visible.
+  if (startInEditor && !matchMedia('(pointer: coarse), (max-width: 850px)').matches) toggleEdit(true);
 }
 
 initialize();
