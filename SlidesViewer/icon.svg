@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">ModernSlides</title>
+  <rect width="512" height="512" rx="92" fill="#171717"/>
+  <path d="M92 126h328v232H92z" fill="#f6f1e5"/>
+  <path d="M122 158h268v22H122zm0 54h184v22H122zm0 54h226v22H122z" fill="#171717"/>
+  <path d="M122 316h104v12H122z" fill="#1f6f3e"/>
+  <circle cx="372" cy="318" r="34" fill="#1f6f3e"/>
+</svg>
