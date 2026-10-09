@@ -1,7 +1,7 @@
 'use strict';
 
-const CACHE_VERSION = 'modernslides-shell-v4';
-const RUNTIME_CACHE = 'modernslides-runtime-v4';
+const CACHE_VERSION = 'modernslides-shell-v5';
+const RUNTIME_CACHE = 'modernslides-runtime-v5';
 const APP_SHELL = [
   './index.html',
   './style-gallery.html',
