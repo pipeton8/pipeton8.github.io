@@ -186,7 +186,7 @@ body.blog-body {
   display: none;
   flex-direction: column;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   width: 32px;
   height: 32px;
   padding: 0 5px;
@@ -201,17 +201,16 @@ body.blog-body {
   width: 100%;
   border-radius: 2px;
   background-color: var(--text-secondary);
-  transition: transform 0.25s ease, opacity 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.25s ease, background-color 0.2s ease;
 }
 
 .nav-menu-btn:hover .menu-bar {
   background-color: var(--accent-primary);
 }
 
-/* Bars morph into an X while the menu is open */
-.blog-nav.nav-open .menu-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.blog-nav.nav-open .menu-bar:nth-child(2) { opacity: 0; }
-.blog-nav.nav-open .menu-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+/* The two bars cross into an X while the menu is open */
+.blog-nav.nav-open .menu-bar:nth-child(1) { transform: translateY(4px) rotate(45deg); }
+.blog-nav.nav-open .menu-bar:nth-child(2) { transform: translateY(-4px) rotate(-45deg); }
 
 /* @ MASTHEAD */
 .blog-header {
