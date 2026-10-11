@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import verdict %}
 {% block title %}About — rest mode{% endblock %}
 {% block description %}About rest mode: video game reviews for people whose free time is too fragmented or short to spend on any random game.{% endblock %}
 {% block canonical %}{{ site_url }}about.html{% endblock %}
@@ -12,5 +13,17 @@
     <article class="prose">
       {{ about_html | safe }}
     </article>
+
+    <!-- Verdict legend -->
+    <section class="verdict-key" id="verdicts" aria-labelledby="verdict-key-title">
+      <h2 class="verdict-key-title" id="verdict-key-title">How the verdict works</h2>
+      <p class="verdict-key-intro">Every review ends with the state of a PS5's light strip.</p>
+      <div class="verdict-key-grid">
+        <div>{{ verdict("no-rest", "lg") }}<p>So good it keeps the console awake. You will lose sleep over it.</p></div>
+        <div>{{ verdict("turn-on", "lg") }}<p>Worth your limited hours. Boot it up.</p></div>
+        <div>{{ verdict("rest-mode", "lg") }}<p>Fine in short doses, or great with caveats for a busy schedule.</p></div>
+        <div>{{ verdict("turn-off", "lg") }}<p>Not worth the little free time you have.</p></div>
+      </div>
+    </section>
   </main>
 {% endblock %}

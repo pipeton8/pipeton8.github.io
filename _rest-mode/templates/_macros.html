@@ -9,7 +9,7 @@
 
 {# Portrait poster card for the review grid. #}
 {% macro review_card(r) %}
-<a class="review-card on-image" href="{{ r.url }}" data-verdict="{{ r.verdict }}" data-played-on="{{ r.meta.get('played-on') or '' }}">
+<a class="review-card on-image" href="{{ r.url }}" data-verdict="{{ r.verdict }}" data-played-on="{{ r.meta.get('played-on') or '' }}" data-search="{{ [r.title, r.meta.get('game'), r.meta.get('genre'), r.meta.get('developer'), r.meta.get('played-on'), r.meta.get('platforms'), r.meta.get('release'), r.meta.get('excerpt'), verdicts[r.verdict].name] | select | join(' ') }}">
   {% if r.cover %}<img class="review-card-img" src="{{ r.cover }}" alt="" loading="lazy">{% endif %}
   <span class="review-card-shade" aria-hidden="true"></span>
   <span class="review-card-top">{{ verdict(r.verdict, "sm", false) }}</span>

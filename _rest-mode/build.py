@@ -246,7 +246,6 @@ def build(no_placeholders: bool, refresh_images: bool) -> None:
         reviews = [r for r in reviews if not r.meta.get("placeholder")]
     reviews.sort(key=lambda r: r.date, reverse=True)
 
-    intro_meta, intro_md = split_front_matter((CONTENT / "intro.md").read_text(encoding="utf-8"))
     about_meta, about_md = split_front_matter((CONTENT / "about.md").read_text(encoding="utf-8"))
 
     played_on = sorted({str(r.meta["played-on"]) for r in reviews if r.meta.get("played-on")})
@@ -257,8 +256,7 @@ def build(no_placeholders: bool, refresh_images: bool) -> None:
         print(f"  page   {out.relative_to(REPO)}")
 
     render("index.html", OUT / "index.html", depth=0, page="home",
-           reviews=reviews, featured=reviews[:2], played_on=played_on,
-           intro_html=md_to_html(intro_md))
+           reviews=reviews, featured=reviews[:2], played_on=played_on)
     render("about.html", OUT / "about.html", depth=0, page="about",
            about_html=md_to_html(about_md), about_meta=about_meta)
     for r in reviews:
@@ -376,6 +374,21 @@ class NotesHTML(HTMLParser):
         (self.link_text if self.href is not None else self.buf).append(data)
 
 
+def normalize_headings(body_html: str) -> str:
+    """Treat whole-line bold text as headings, as well as real <h1>-<h3>.
+
+    Notes stores Title/Heading/Subheading as <h1>/<h2>/<h3>, but text written
+    back into a note by a script (or pasted from elsewhere) comes out as bold
+    spans: 24px+ -> title, 18px+ -> heading, plain bold line -> subheading.
+    """
+    def sized(m):
+        size, text = int(m.group(1)), m.group(2)
+        level = 1 if size >= 24 else 2 if size >= 18 else 3
+        return f"<div><h{level}>{text}</h{level}></div>"
+    body_html = re.sub(r'<div><b><span style="font-size: (\d+)px">([^<]*)</span></b></div>', sized, body_html)
+    return re.sub(r"<div><b>([^<]+)</b></div>", r"<div><h3>\1</h3></div>", body_html)
+
+
 def notes_to_blocks(body_html: str, image_dir: Path | None = None) -> list[tuple[str, str]]:
     counter = iter(range(1, 1000))
 
@@ -394,7 +407,7 @@ def notes_to_blocks(body_html: str, image_dir: Path | None = None) -> list[tuple
         return f"../images/{image_dir.name}/inline-{n}.jpg"
 
     parser = NotesHTML(sink)
-    parser.feed(body_html)
+    parser.feed(normalize_headings(body_html))
     parser._flush()
     return parser.blocks
 
@@ -468,11 +481,12 @@ def import_about(note: str) -> None:
             continue
         if current:
             sections[current].append((kind, text))
-    if not sections["intro"] or not sections["about"]:
-        raise SystemExit('The note needs two "##" sections: one with "Landing" and one with "About" in the heading.')
-    write_md(CONTENT / "intro.md", {"updated": modified}, blocks_to_md(sections["intro"]))
+    if not sections["about"]:
+        raise SystemExit('The note needs a "##" heading with "About" in it (an optional "Landing" section is kept in content/intro.md).')
+    if sections["intro"]:
+        write_md(CONTENT / "intro.md", {"updated": modified}, blocks_to_md(sections["intro"]))
     write_md(CONTENT / "about.md", {"updated": modified}, blocks_to_md(sections["about"], shift=-1))
-    print(f"Imported note {note!r} -> content/intro.md, content/about.md")
+    print(f"Imported note {note!r} -> content/about.md" + (" + content/intro.md" if sections["intro"] else ""))
     print("Next: uv run _rest-mode/build.py build")
 
 

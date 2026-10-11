@@ -131,7 +131,8 @@ window.matchMedia('(min-width: 769px)').addEventListener('change', (e) => {
 })();
 
 // ---------------------------------------------------------------------------
-// Review filters (verdict, device)
+// Review search + filters (verdict, device). All conditions must match; the
+// search ignores case and accents and needs every word to appear.
 // ---------------------------------------------------------------------------
 (function reviewFilters() {
   const grid = document.getElementById('review-grid');
@@ -139,21 +140,26 @@ window.matchMedia('(min-width: 769px)').addEventListener('change', (e) => {
   const cards = Array.from(grid.querySelectorAll('.review-card'));
   const count = document.getElementById('reviews-count');
   const empty = document.getElementById('reviews-empty');
+  const search = document.getElementById('review-search');
   const active = {};
-
-  function apply() {
-    let shown = 0;
-    cards.forEach((card) => {
-      const match = Object.entries(active).every(([key, value]) => !value || card.dataset[toCamel(key)] === value);
-      card.hidden = !match;
-      if (match) shown += 1;
-    });
-    count.textContent = `Showing ${shown} review${shown === 1 ? '' : 's'}`;
-    empty.hidden = shown > 0;
-  }
+  const fold = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/['’]/g, '').toLowerCase();
+  const haystacks = new Map(cards.map((card) => [card, fold(card.dataset.search || '')]));
 
   function toCamel(key) {
     return key.replace(/-(\w)/g, (_, c) => c.toUpperCase());
+  }
+
+  function apply() {
+    const words = search ? fold(search.value).split(/\s+/).filter(Boolean) : [];
+    let shown = 0;
+    cards.forEach((card) => {
+      const chipsMatch = Object.entries(active).every(([key, value]) => !value || card.dataset[toCamel(key)] === value);
+      const textMatch = words.every((w) => haystacks.get(card).includes(w));
+      card.hidden = !(chipsMatch && textMatch);
+      if (!card.hidden) shown += 1;
+    });
+    count.textContent = `Showing ${shown} review${shown === 1 ? '' : 's'}`;
+    empty.hidden = shown > 0;
   }
 
   document.querySelectorAll('.filter-group').forEach((group) => {
@@ -170,4 +176,6 @@ window.matchMedia('(min-width: 769px)').addEventListener('change', (e) => {
       apply();
     });
   });
+
+  if (search) search.addEventListener('input', apply);
 })();

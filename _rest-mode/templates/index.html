@@ -11,16 +11,12 @@
       <span class="rm-strip" aria-hidden="true"></span>
     </div>
     <p class="blog-subtitle" id="masthead-subtitle">game reviews for people with limited time</p>
-    <a class="rm-scroll-cue" id="scroll-cue" href="#intro" aria-label="Scroll to the reviews">
+    <a class="rm-scroll-cue" id="scroll-cue" href="#reviews" aria-label="Scroll to the reviews">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
     </a>
   </header>
 
   <main>
-    <!-- Intro (content/intro.md) -->
-    <section class="blog-intro" id="intro">
-      {{ intro_html | safe }}
-    </section>
 
 {% if featured %}
     <!-- Featured: the latest one or two reviews -->
@@ -47,6 +43,11 @@
         <h2 class="section-label">All reviews</h2>
         <p class="reviews-count" id="reviews-count" aria-live="polite">Showing {{ reviews | length }} review{{ "" if reviews | length == 1 else "s" }}</p>
       </div>
+
+      <label class="search-box">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="review-search" placeholder="Search by game, genre, developer, device…" aria-label="Search reviews" autocomplete="off" spellcheck="false">
+      </label>
 
       <div class="filters">
         <div class="filter-group" data-filter="verdict" role="group" aria-label="Filter by verdict">
@@ -77,16 +78,5 @@
       <p class="reviews-empty" id="reviews-empty" hidden>No reviews match these filters yet.</p>
     </section>
 
-    <!-- Verdict legend -->
-    <section class="verdict-key" aria-labelledby="verdict-key-title">
-      <h2 class="section-label" id="verdict-key-title">How the verdict works</h2>
-      <p class="verdict-key-intro">Every review ends with the state of a PS5's light strip.</p>
-      <div class="verdict-key-grid">
-        <div>{{ verdict("no-rest", "lg") }}<p>So good it keeps the console awake. You will lose sleep over it.</p></div>
-        <div>{{ verdict("turn-on", "lg") }}<p>Worth your limited hours. Boot it up.</p></div>
-        <div>{{ verdict("rest-mode", "lg") }}<p>Fine in short doses, or great with caveats for a busy schedule.</p></div>
-        <div>{{ verdict("turn-off", "lg") }}<p>Not worth the little free time you have.</p></div>
-      </div>
-    </section>
   </main>
 {% endblock %}

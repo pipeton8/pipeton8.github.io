@@ -12,7 +12,7 @@ Every command runs from the repo root. `uv` installs the Python packages the fir
 |---|---|
 | Get a blank review template (copied to the clipboard) | `uv run _rest-mode/build.py template --copy` |
 | Import a review note | `uv run _rest-mode/build.py import "Exact note title"` |
-| Import the About note (landing text + About page) | `uv run _rest-mode/build.py import-about` |
+| Import the About note | `uv run _rest-mode/build.py import-about` |
 | Rebuild every page | `uv run _rest-mode/build.py build` |
 | Rebuild without the placeholder reviews | `uv run _rest-mode/build.py build --no-placeholders` |
 
@@ -60,7 +60,9 @@ The closing paragraph shown next to the light strip.
 
 ## The About note
 
-The note named **About** needs two `##` headings: one containing "Landing" (the text under the masthead) and one containing "About" (the About page). `###` headings inside the About section become the page's section headings.
+The note named **About** needs a `##` heading containing "About". Everything under it becomes the About page, and its `###` headings become the page's section headings. An optional `##` section containing "Landing" is saved to `content/intro.md`; the site doesn't use it at the moment.
+
+Headings can be Notes' real Title/Heading/Subheading styles or plain bold lines. Text written into a note by a script comes back as bold lines, and both forms import the same way.
 
 ## Placeholders
 

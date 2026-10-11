@@ -361,20 +361,6 @@ a:hover {
   --nav-bg: 0;
 }
 
-/* @ INTRO */
-.blog-intro {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 10px var(--gutter) 70px;
-  font-size: 1.08rem;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.blog-intro p {
-  margin: 0;
-}
-
 /* @ FEATURED */
 .featured {
   display: grid;
@@ -497,6 +483,39 @@ a:hover {
   font-size: .78rem;
   color: var(--text-secondary);
   margin: 0;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 0 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  transition: border-color .2s ease;
+}
+
+.search-box:focus-within {
+  border-color: var(--accent-primary);
+}
+
+.search-box input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.search-box input::placeholder {
+  color: var(--text-secondary);
+  opacity: .8;
 }
 
 .filters {
@@ -786,31 +805,37 @@ a:hover {
   animation: none;
 }
 
-/* @ VERDICT KEY */
+/* @ VERDICT KEY (about page) */
 .verdict-key {
-  max-width: var(--wide);
-  margin: 0 auto;
-  padding: 50px var(--gutter) 40px;
+  margin: 10px 0 30px;
+  padding-top: 36px;
   border-top: 1px solid var(--border-color);
-  box-sizing: border-box;
+}
+
+.verdict-key-title {
+  font-family: var(--font-sans);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
 }
 
 .verdict-key-intro {
   color: var(--text-secondary);
-  margin: 10px 0 30px;
+  margin: 6px 0 28px;
 }
 
 .verdict-key-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 30px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px 36px;
 }
 
 .verdict-key-grid p {
   color: var(--text-secondary);
   font-size: .95rem;
   line-height: 1.6;
-  margin: 14px 0 0;
+  margin: 12px 0 0;
 }
 
 /* @ PAGE HEADER (about) */
@@ -890,6 +915,13 @@ a:hover {
 
 .page-about .prose {
   padding: 30px 0 40px;
+}
+
+/* Justified with hyphenation so the gaps between words stay even (needs lang="en") */
+.page-about .prose p {
+  text-align: justify;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
 /* @ REVIEW HERO */
@@ -1113,12 +1145,6 @@ a:hover {
 }
 
 /* @ RESPONSIVE */
-@media (max-width: 960px) {
-  .verdict-key-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 768px) {
   :root {
     --nav-h: 56px;
@@ -1136,11 +1162,6 @@ a:hover {
 
   .blog-subtitle {
     font-size: 1.02rem;
-  }
-
-  .blog-intro {
-    text-align: left;
-    font-size: 1rem;
   }
 
   .blog-nav-right {
@@ -1226,6 +1247,10 @@ a:hover {
   .verdict-key-grid {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+
+  .search-box input {
+    font-size: 16px;          /* avoids iOS zooming into the field */
   }
 
   .page-title {
