@@ -21,7 +21,9 @@
 
   --font-brand: 'Sora', 'Helvetica Neue', Arial, sans-serif;
   --font-sans: 'Sora', 'Helvetica Neue', Arial, sans-serif;
-  --font-serif: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  /* Body text. Plus Jakarta Sans was the runner-up and a good drop-in
+     alternative: swap the family here and in the Google Fonts link. */
+  --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
 
   --rm-strip: linear-gradient(90deg,
     var(--rm-amber-end) 0%,
@@ -71,8 +73,8 @@
 body.blog-body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-serif);
-  font-size: 17px;
+  font-family: var(--font-body);
+  font-size: 16px;
   line-height: 1.75;
   margin: 0;
   padding: 0;
@@ -221,7 +223,7 @@ body.blog-body {
 }
 
 .blog-subtitle {
-  font-family: var(--font-serif);
+  font-family: var(--font-body);
   font-style: italic;
   font-size: 1.15rem;
   color: var(--text-secondary);

@@ -27,6 +27,7 @@ Single source of truth for the Rest Mode identity. Values are final; the SVG mas
 | `--rm-cream` | `#f2ece1` | light room / paper |
 | `--rm-rim` | `#575757` | light-mode rim (all elements) |
 | Typeface | **Sora** (Google Fonts), weight **600** for the wordmark & monogram | |
+| Body typeface | **Inter** (Google Fonts), 400 / 700 + real italic, **16px** body copy. Sora stays on headings, labels and nav | Alternate: **Plus Jakarta Sans** (runner-up; drop-in swap) |
 
 Amber `#e07b1e` = `rgb(224,123,30)`. Rim `#575757` = `rgb(87,87,87)`.
 
