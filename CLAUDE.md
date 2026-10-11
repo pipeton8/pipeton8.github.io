@@ -21,7 +21,7 @@ Three HTML pages sharing a consistent navbar/footer structure:
 - `teaching.html` — Teaching materials organized by course
 - `coursework.html` — Academic coursework with GitHub/Colab links
 
-`rest-mode/` is a separate gaming blog ("Rest Mode") with its own stylesheet (`rest-mode/css/rest-mode.css`), theme script, and favicon set in `icons/rest-mode/`. It does not use Bootstrap or the main palette below; its brand values live in `icons/rest-mode/rest-mode-brand.md`, which is authoritative.
+`rest-mode/` is a separate gaming blog ("rest mode") with its own stylesheet (`rest-mode/css/rest-mode.css`), script (`rest-mode/scripts/rest-mode.js`), and favicon set in `icons/rest-mode/`. It does not use Bootstrap or the main palette below; its brand values live in `icons/rest-mode/rest-mode-brand.md`, which is authoritative. Its HTML pages are **generated**: edit the Markdown in `_rest-mode/content/` or the Jinja templates in `_rest-mode/templates/`, then run `uv run _rest-mode/build.py build` (see `_rest-mode/README.md`). Never hand-edit `rest-mode/*.html` or `rest-mode/reviews/*.html`.
 
 All dependencies are CDN-loaded (Bootstrap 5.0.2, jQuery 3.3.1, Font Awesome 6, Academicons, Google Fonts). The single custom CSS file (`css/styles.css`) and single JS file (`scripts/scripts.js`) cover all three pages.
 

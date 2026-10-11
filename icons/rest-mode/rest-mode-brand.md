@@ -92,7 +92,7 @@ Lowercase, Sora 600, letter-spacing **-0.025em**. Strip centered beneath, **18px
 | Gap (text → strip) | 18px |
 | Gradient fade | 15% · end fill 0.15 |
 | **Rim** (light only) | color `#575757` · opacity **0.6** · width X **3.5px** · Y **4.5px** · offset 0 · blur **6px** · type **downward** |
-| Subtitle | *when your devices get more sleep than game time* |
+| Subtitle | *game reviews for people with limited time* (Oct 2026; replaces *when your devices get more sleep than game time*) |
 
 Assets: `brand-assets/wordmark-dark.svg`, `brand-assets/wordmark-light.svg`.
 

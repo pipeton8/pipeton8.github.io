@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% from "_macros.html" import verdict, review_card %}
+{% block title %}rest mode — game reviews for people with limited time{% endblock %}
+{% block canonical %}{{ site_url }}{% endblock %}
+
+{% block content %}
+  <!-- Masthead: on wide screens the wordmark flies into the nav bar as you scroll (scripts/rest-mode.js) -->
+  <header class="rm-masthead" id="masthead">
+    <div class="rm-wordmark rm-wordmark--hero" id="masthead-wordmark">
+      <h1 class="rm-wordmark-text">rest mode</h1>
+      <span class="rm-strip" aria-hidden="true"></span>
+    </div>
+    <p class="blog-subtitle" id="masthead-subtitle">game reviews for people with limited time</p>
+    <a class="rm-scroll-cue" id="scroll-cue" href="#intro" aria-label="Scroll to the reviews">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </a>
+  </header>
+
+  <main>
+    <!-- Intro (content/intro.md) -->
+    <section class="blog-intro" id="intro">
+      {{ intro_html | safe }}
+    </section>
+
+{% if featured %}
+    <!-- Featured: the latest one or two reviews -->
+    <section class="featured featured--{{ featured | length }}" aria-label="Latest reviews">
+{% for r in featured %}
+      <a class="featured-item on-image" href="{{ r.url }}">
+        {% if r.hero or r.cover %}<img class="featured-img" src="{{ r.hero or r.cover }}" alt="" {% if not loop.first %}loading="lazy"{% endif %}>{% endif %}
+        <span class="featured-shade" aria-hidden="true"></span>
+        <span class="featured-body">
+          <span class="featured-kicker">{{ "Latest review" if loop.first else "Also new" }} &middot; {{ r.date | human_date }}</span>
+          {{ verdict(r.verdict, "sm") }}
+          <span class="featured-title">{{ r.title }}</span>
+          {% if r.meta.get('excerpt') %}<span class="featured-excerpt">{{ r.meta.get('excerpt') }}</span>{% endif %}
+        </span>
+        <span class="featured-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+{% endfor %}
+    </section>
+{% endif %}
+
+    <!-- All reviews: filters + poster grid -->
+    <section class="reviews-section" id="reviews">
+      <div class="reviews-head">
+        <h2 class="section-label">All reviews</h2>
+        <p class="reviews-count" id="reviews-count" aria-live="polite">Showing {{ reviews | length }} review{{ "" if reviews | length == 1 else "s" }}</p>
+      </div>
+
+      <div class="filters">
+        <div class="filter-group" data-filter="verdict" role="group" aria-label="Filter by verdict">
+          <span class="filter-label">Verdict</span>
+          <button class="filter-chip is-active" data-value="" aria-pressed="true">All</button>
+{% for key, v in verdicts.items() %}
+          <button class="filter-chip" data-value="{{ key }}" aria-pressed="false">
+            <span class="rm-verdict rm-verdict--{{ key }} rm-verdict--chip"><span class="rm-light" aria-hidden="true"></span></span>{{ v.name }}
+          </button>
+{% endfor %}
+        </div>
+{% if played_on | length > 1 %}
+        <div class="filter-group" data-filter="played-on" role="group" aria-label="Filter by device">
+          <span class="filter-label">Played on</span>
+          <button class="filter-chip is-active" data-value="" aria-pressed="true">All</button>
+{% for device in played_on %}
+          <button class="filter-chip" data-value="{{ device }}" aria-pressed="false">{{ device }}</button>
+{% endfor %}
+        </div>
+{% endif %}
+      </div>
+
+      <div class="review-grid" id="review-grid">
+{% for r in reviews %}
+        {{ review_card(r) }}
+{% endfor %}
+      </div>
+      <p class="reviews-empty" id="reviews-empty" hidden>No reviews match these filters yet.</p>
+    </section>
+
+    <!-- Verdict legend -->
+    <section class="verdict-key" aria-labelledby="verdict-key-title">
+      <h2 class="section-label" id="verdict-key-title">How the verdict works</h2>
+      <p class="verdict-key-intro">Every review ends with the state of a PS5's light strip.</p>
+      <div class="verdict-key-grid">
+        <div>{{ verdict("no-rest", "lg") }}<p>So good it keeps the console awake. You will lose sleep over it.</p></div>
+        <div>{{ verdict("turn-on", "lg") }}<p>Worth your limited hours. Boot it up.</p></div>
+        <div>{{ verdict("rest-mode", "lg") }}<p>Fine in short doses, or great with caveats for a busy schedule.</p></div>
+        <div>{{ verdict("turn-off", "lg") }}<p>Not worth the little free time you have.</p></div>
+      </div>
+    </section>
+  </main>
+{% endblock %}

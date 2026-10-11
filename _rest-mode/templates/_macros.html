@@ -1,0 +1,24 @@
+{# The PS5-style light strip with its verdict label. size: "sm" (cards) or "lg" (review). #}
+{% macro verdict(key, size="sm", show_meaning=true) %}
+<span class="rm-verdict rm-verdict--{{ key }} rm-verdict--{{ size }}">
+  <span class="rm-light" aria-hidden="true"></span>
+  <span class="rm-verdict-name">{{ verdicts[key].name }}</span>
+  {% if show_meaning %}<span class="rm-verdict-meaning">{{ verdicts[key].meaning }}</span>{% endif %}
+</span>
+{% endmacro %}
+
+{# Portrait poster card for the review grid. #}
+{% macro review_card(r) %}
+<a class="review-card on-image" href="{{ r.url }}" data-verdict="{{ r.verdict }}" data-played-on="{{ r.meta.get('played-on') or '' }}">
+  {% if r.cover %}<img class="review-card-img" src="{{ r.cover }}" alt="" loading="lazy">{% endif %}
+  <span class="review-card-shade" aria-hidden="true"></span>
+  <span class="review-card-top">{{ verdict(r.verdict, "sm", false) }}</span>
+  <span class="review-card-bottom">
+    <span class="review-card-title">{{ r.meta.get('game') or r.title }}</span>
+    <span class="review-card-foot">
+      <span class="review-card-device">{{ r.meta.get('played-on') or '' }}</span>
+      <span class="review-card-more" aria-hidden="true">&rarr;</span>
+    </span>
+  </span>
+</a>
+{% endmacro %}

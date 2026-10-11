@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}About — rest mode{% endblock %}
+{% block description %}About rest mode: video game reviews for people whose free time is too fragmented or short to spend on any random game.{% endblock %}
+{% block canonical %}{{ site_url }}about.html{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <h1 class="page-title">About</h1>
+  </header>
+
+  <main class="prose-container">
+    <article class="prose">
+      {{ about_html | safe }}
+    </article>
+  </main>
+{% endblock %}

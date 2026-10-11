@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_macros.html" import verdict %}
+{% block title %}{{ r.title }} — rest mode{% endblock %}
+{% block description %}{{ r.meta.get('excerpt') or r.title }}{% endblock %}
+{% block keywords %}{{ r.meta.get('game') }}, review, short sessions, {{ r.meta.get('genre') or "video games" }}{% endblock %}
+{% block canonical %}{{ site_url }}{{ r.url }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_image %}{% if r.hero %}{{ site_url }}{{ r.hero }}{% else %}https://pipeton8.github.io/icons/rest-mode/og-image.png{% endif %}{% endblock %}
+{% block og_image_alt %}{{ r.meta.get('game') }}{% endblock %}
+
+{% block content %}
+  <header class="review-hero on-image{% if not r.hero %} review-hero--plain{% endif %}">
+    {% if r.hero %}<img class="review-hero-img" src="../{{ r.hero }}" alt="">{% endif %}
+    <span class="review-hero-shade" aria-hidden="true"></span>
+    <div class="review-hero-body">
+      <div class="post-meta-row">
+        <span>{{ r.date | human_date }}</span>
+        {% if r.meta.get('genre') %}<span class="post-category">{{ r.meta.get('genre') }}</span>{% endif %}
+        <span>{{ r.read_minutes }} min read</span>
+      </div>
+      <h1 class="post-full-title">{{ r.title }}</h1>
+      {{ verdict(r.verdict, "sm") }}
+    </div>
+  </header>
+
+  <main class="prose-container">
+    <article class="post-full">
+
+{% if r.info %}
+      <dl class="game-info-grid">
+{% for label, value in r.info %}
+        <div class="game-info-item"><dt class="game-info-label">{{ label }}</dt><dd class="game-info-value">{{ value }}</dd></div>
+{% endfor %}
+      </dl>
+{% endif %}
+
+      <div class="prose">
+        {{ r.body_html | safe }}
+      </div>
+
+{% if r.pros or r.cons %}
+      <div class="pros-cons-container">
+{% if r.pros %}
+        <div><h2 class="pros-title">Pros</h2><ul class="pros-list">{% for p in r.pros %}<li>{{ p | safe }}</li>{% endfor %}</ul></div>
+{% endif %}
+{% if r.cons %}
+        <div><h2 class="cons-title">Cons</h2><ul class="cons-list">{% for c in r.cons %}<li>{{ c | safe }}</li>{% endfor %}</ul></div>
+{% endif %}
+      </div>
+{% endif %}
+
+      <section class="verdict-box verdict-box--{{ r.verdict }}" aria-label="Verdict">
+        <p class="verdict-kicker">Verdict</p>
+        {{ verdict(r.verdict, "lg") }}
+        {% if r.verdict_html %}<div class="verdict-text">{{ r.verdict_html | safe }}</div>{% endif %}
+      </section>
+
+      <a href="../index.html#reviews" class="back-button"><i class="fas fa-arrow-left"></i> All reviews</a>
+    </article>
+  </main>
+{% endblock %}
