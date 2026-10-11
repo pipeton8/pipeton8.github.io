@@ -147,6 +147,21 @@ The rim never shows in dark mode; the glow never shows in light mode. They are m
 
 ---
 
+## 6b. Verdict lights (reviews)
+
+Each review ends with a PS5-style light strip, built like the brand strip (same pill, 15% end fade). Decided Oct 2026 (option "E").
+
+| Verdict key | Name | Meaning | Light | Dark mode | Light mode |
+|---|---|---|---|---|---|
+| `no-rest` | No rest | Strongly recommended | steady bright white (`#fff` → `#e9eef4`) | white glow | 1px ink outline + rim |
+| `turn-on` | Turn on | Recommended | PlayStation blue (`#5aa0ff` → `#2f6bff`) | blue glow | 1px ink outline + rim |
+| `rest-mode` | Rest mode | Mixed | brand amber strip | amber glow | rim |
+| `turn-off` | Turn off | Avoid | no light (`#2c313b` / `#d3cabb`) | none | none |
+
+No animation on any level. Implementation: `.rm-verdict--<key> .rm-light` in `rest-mode/css/rest-mode.css`.
+
+---
+
 ## 7. For Claude Code — implementation notes
 
 1. **Tokens first.** Add §1 as CSS custom properties (or the repo's existing token system) before touching components.

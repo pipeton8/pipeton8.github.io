@@ -33,6 +33,12 @@
     var(--rm-amber) 50%,
     var(--rm-amber-edge) 85%,
     var(--rm-amber-end) 100%);
+  --rm-strip-blue: linear-gradient(90deg,
+    rgba(80, 140, 255, 0.15) 0%,
+    #5aa0ff 15%,
+    #2f6bff 50%,
+    #5aa0ff 85%,
+    rgba(80, 140, 255, 0.15) 100%);
   --rm-strip-white: linear-gradient(90deg,
     rgba(255, 255, 255, 0.15) 0%,
     #ffffff 15%,
@@ -61,7 +67,8 @@
   --chip-active-text: var(--rm-slate);
   /* Glows are in em so they scale with the element (wordmark, lights) */
   --amber-glow: 0 0 0.6em rgba(224, 123, 30, 0.60), 0 0 1.5em rgba(224, 123, 30, 0.30);
-  --white-glow: 0 0 0.6em rgba(255, 255, 255, 0.55), 0 0 1.5em rgba(200, 220, 255, 0.25);
+  --white-glow: 0 0 0.6em rgba(255, 255, 255, 0.55), 0 0 1.5em rgba(200, 220, 255, 0.25), 0 0 2.6em rgba(255, 255, 255, 0.28);
+  --blue-glow: 0 0 0.6em rgba(60, 120, 255, 0.70), 0 0 1.6em rgba(60, 120, 255, 0.35);
   --light-off: #2c313b;
   --rim-display: none;
 }
@@ -82,6 +89,7 @@
   --chip-active-text: var(--rm-cream);
   --amber-glow: none;
   --white-glow: none;
+  --blue-glow: none;
   --light-off: #d3cabb;
   --rim-display: block;
   color-scheme: light;
@@ -686,7 +694,7 @@ a:hover {
 }
 
 /* @ VERDICT LIGHT */
-/* The PS5 light strip: off (Turn off), amber (Rest mode), white (Turn on),
+/* The PS5 light strip: off (Turn off), amber (Rest mode), blue (Turn on),
    bright white (No rest). Same construction as the brand strip. */
 .rm-verdict {
   display: inline-flex;
@@ -765,22 +773,16 @@ a:hover {
   box-shadow: var(--amber-glow);
 }
 
-/* Turn on: white */
-.rm-verdict--turn-on .rm-light,
+/* Turn on: PlayStation blue */
+.rm-verdict--turn-on .rm-light {
+  background: var(--rm-strip-blue);
+  box-shadow: var(--blue-glow);
+}
+
+/* No rest: steady, bright white (the console never sleeps) */
 .rm-verdict--no-rest .rm-light {
   background: var(--rm-strip-white);
   box-shadow: var(--white-glow);
-}
-
-/* No rest: brighter white that slowly "breathes" (provisional; see the options gallery) */
-.rm-verdict--no-rest .rm-light {
-  box-shadow: var(--white-glow), 0 0 2.6em rgba(255, 255, 255, .25);
-  animation: rm-breathe 3.2s ease-in-out infinite;
-}
-
-@keyframes rm-breathe {
-  0%, 100% { filter: brightness(1); }
-  50%      { filter: brightness(1.25) drop-shadow(0 0 .5em rgba(255, 255, 255, .6)); }
 }
 
 /* Light mode rim behind lit strips (not behind "off") */
@@ -798,11 +800,13 @@ a:hover {
   z-index: -1;
 }
 
-/* White on cream needs an edge to read as a light at all */
-:root[data-theme="light"] .rm-verdict--turn-on .rm-light,
+/* On cream the lit strips need an edge to read as lights at all */
+:root[data-theme="light"] .rm-verdict--turn-on .rm-light {
+  box-shadow: inset 0 0 0 1px rgba(26, 23, 18, .18);
+}
+
 :root[data-theme="light"] .rm-verdict--no-rest .rm-light {
   box-shadow: inset 0 0 0 1px rgba(26, 23, 18, .22);
-  animation: none;
 }
 
 /* @ VERDICT KEY (about page) */
@@ -1271,6 +1275,5 @@ a:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rm-verdict--no-rest .rm-light { animation: none; }
   .featured-img, .review-card-img { transition: none; }
 }
