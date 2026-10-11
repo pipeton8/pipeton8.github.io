@@ -21,6 +21,8 @@ Three HTML pages sharing a consistent navbar/footer structure:
 - `teaching.html` — Teaching materials organized by course
 - `coursework.html` — Academic coursework with GitHub/Colab links
 
+`rest-mode/` is a separate gaming blog ("Rest Mode") with its own stylesheet (`rest-mode/css/rest-mode.css`), theme script, and favicon set in `icons/rest-mode/`. It does not use Bootstrap or the main palette below; its brand values live in `icons/rest-mode/rest-mode-brand.md`, which is authoritative.
+
 All dependencies are CDN-loaded (Bootstrap 5.0.2, jQuery 3.3.1, Font Awesome 6, Academicons, Google Fonts). The single custom CSS file (`css/styles.css`) and single JS file (`scripts/scripts.js`) cover all three pages.
 
 ## Design System

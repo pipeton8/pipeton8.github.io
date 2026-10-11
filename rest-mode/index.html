@@ -5,32 +5,32 @@
   <meta charset="utf-8">
   <script>
     (function () {
-      var saved = localStorage.getItem('busyGamerColorMode');
-      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      try {
+        if (localStorage.getItem('restModeColorMode') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      } catch (e) {}
     })();
   </script>
-  <title>The Busy Gamer - Game Reviews for Time-Strapped Players</title>
+  <title>Rest Mode - Game Reviews for Time-Strapped Players</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Game reviews and recommendations for busy gamers with limited time. Find out which games you can actually finish during the week.">
   <meta name="keywords" content="gaming, game reviews, busy gamer, casual gaming, time management, quick gaming sessions">
 
   <!-- Icons -->
-  <link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16x16.png">
-  <link rel="manifest" href="../site.webmanifest">
-  <link rel="mask-icon" href="../icons/safari-pinned-tab.svg" color="#334257">
-  <meta name="msapplication-TileColor" content="#eeeeee">
-  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="../icons/rest-mode/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" type="image/png" sizes="32x32" href="../icons/rest-mode/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../icons/rest-mode/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icons/rest-mode/apple-touch-icon.png">
+  <link rel="manifest" href="../icons/rest-mode/site.webmanifest">
+  <meta name="theme-color" content="#15181f">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
-  <link rel="stylesheet" href="css/blog-styles.css">
+  <link rel="stylesheet" href="css/rest-mode.css">
 
   <!-- Font Awesome -->
   <script src="https://kit.fontawesome.com/d1e054ce54.js" crossorigin="anonymous"></script>
@@ -50,7 +50,11 @@
   <!-- Navigation -->
   <nav class="blog-nav">
     <div class="blog-nav-container">
-      <a href="index.html" class="blog-nav-brand">The Busy Gamer</a>
+      <a href="index.html" class="blog-nav-brand">
+        <img class="brand-mark-dark" src="../icons/rest-mode/avatar-period.svg" alt="" aria-hidden="true">
+        <img class="brand-mark-light" src="../icons/rest-mode/avatar-period-light.svg" alt="" aria-hidden="true">
+        rest mode
+      </a>
       <div class="blog-nav-right">
         <ul class="blog-nav-links">
           <li><a href="index.html">Home</a></li>
@@ -65,9 +69,12 @@
 
   <!-- Blog Header -->
   <header class="blog-header">
-    <h1 class="blog-title">The Busy Gamer</h1>
-    <p class="blog-subtitle">Game reviews for time-strapped players</p>
-    <p class="blog-tagline">Because not everyone has 100+ hours to grind</p>
+    <div class="rm-wordmark">
+      <h1 class="rm-wordmark-text">rest mode</h1>
+      <span class="rm-strip" aria-hidden="true"></span>
+    </div>
+    <p class="blog-subtitle">when your devices get more sleep than game time</p>
+    <p class="blog-tagline">Game reviews for time-strapped players</p>
   </header>
 
   <!-- Main Content -->
@@ -75,11 +82,11 @@
 
     <!-- Introduction -->
     <div class="blog-intro">
-      <h2>Welcome to The Busy Gamer</h2>
+      <h2>Welcome to Rest Mode</h2>
       <p>
         Let's face it: adulting is hard, and gaming time is precious. I review games with one question in mind:
         <strong>can you actually play this with limited time during the week?</strong>
-        Each review includes session length, time-to-complete estimates, and a Busy Gamer Rating™
+        Each review includes session length, time-to-complete estimates, and a Rest Mode Rating
         to help you decide if it's worth your limited gaming hours.
       </p>
     </div>
@@ -101,8 +108,8 @@
           even when you die. Perfect for squeezing in a quick session between responsibilities.
         </p>
         <div class="post-list-footer">
-          <div class="busy-gamer-rating">
-            <span>Busy Gamer</span>
+          <div class="rm-rating">
+            <span>Rest Mode</span>
             <span class="rating-stars">★★★★★</span>
           </div>
           <a href="posts/2026-03-hades-review.html" class="read-more">Read Review</a>
@@ -123,8 +130,8 @@
           game, not for those with only an hour or two per week. But if you have the time...
         </p>
         <div class="post-list-footer">
-          <div class="busy-gamer-rating">
-            <span>Busy Gamer</span>
+          <div class="rm-rating">
+            <span>Rest Mode</span>
             <span class="rating-stars">★★★☆☆</span>
           </div>
           <a href="posts/2026-03-elden-ring-review.html" class="read-more">Read Review</a>
@@ -145,8 +152,8 @@
           Easy to pick up, insanely hard to put down. Perfect lunch break gaming.
         </p>
         <div class="post-list-footer">
-          <div class="busy-gamer-rating">
-            <span>Busy Gamer</span>
+          <div class="rm-rating">
+            <span>Rest Mode</span>
             <span class="rating-stars">★★★★★</span>
           </div>
           <a href="posts/2026-03-vampire-survivors-review.html" class="read-more">Read Review</a>
@@ -157,7 +164,7 @@
 
     <!-- Rating System Explanation -->
     <div class="rating-key">
-      <h2>Understanding the Busy Gamer Rating™</h2>
+      <h2>Understanding the Rest Mode Rating</h2>
       <div class="rating-key-grid">
         <div>
           <div class="rating-key-stars">★★★★★</div>
@@ -187,11 +194,11 @@
   <!-- Footer -->
   <footer class="blog-footer">
     <p>
-      The Busy Gamer &mdash; a gaming blog by <a href="../index.html">Felipe del Canto</a>
+      Rest Mode &mdash; a gaming blog by <a href="../index.html">Felipe del Canto</a>
     </p>
   </footer>
 
-  <script src="scripts/blog-theme.js"></script>
+  <script src="scripts/rest-mode-theme.js"></script>
 
 </body>
 </html>

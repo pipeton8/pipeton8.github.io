@@ -5,28 +5,32 @@
   <meta charset="utf-8">
   <script>
     (function () {
-      var saved = localStorage.getItem('busyGamerColorMode');
-      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      try {
+        if (localStorage.getItem('restModeColorMode') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      } catch (e) {}
     })();
   </script>
-  <title>Hades Review - The Busy Gamer</title>
+  <title>Hades Review - Rest Mode</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Hades review for busy gamers - perfect 20-45 minute sessions with meaningful progression. A masterclass in respecting your time.">
   <meta name="keywords" content="Hades, roguelike, busy gamer, game review, short sessions">
 
   <!-- Icons -->
-  <link rel="apple-touch-icon" sizes="180x180" href="../../icons/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="../../icons/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="../../icons/favicon-16x16.png">
+  <link rel="icon" href="../../icons/rest-mode/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../icons/rest-mode/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../icons/rest-mode/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../icons/rest-mode/apple-touch-icon.png">
+  <link rel="manifest" href="../../icons/rest-mode/site.webmanifest">
+  <meta name="theme-color" content="#15181f">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- CSS -->
-  <link rel="stylesheet" href="../css/blog-styles.css">
+  <link rel="stylesheet" href="../css/rest-mode.css">
 
   <!-- Font Awesome -->
   <script src="https://kit.fontawesome.com/d1e054ce54.js" crossorigin="anonymous"></script>
@@ -46,7 +50,11 @@
   <!-- Navigation -->
   <nav class="blog-nav">
     <div class="blog-nav-container">
-      <a href="../index.html" class="blog-nav-brand">The Busy Gamer</a>
+      <a href="../index.html" class="blog-nav-brand">
+        <img class="brand-mark-dark" src="../../icons/rest-mode/avatar-period.svg" alt="" aria-hidden="true">
+        <img class="brand-mark-light" src="../../icons/rest-mode/avatar-period-light.svg" alt="" aria-hidden="true">
+        rest mode
+      </a>
       <div class="blog-nav-right">
         <ul class="blog-nav-links">
           <li><a href="../index.html">Home</a></li>
@@ -73,7 +81,7 @@
   <main class="blog-container">
 
     <a href="../index.html" class="back-button">
-      <i class="fas fa-arrow-left"></i> Back to Blog
+      <i class="fas fa-arrow-left"></i> Back to Rest Mode
     </a>
 
     <article class="post-full">
@@ -109,9 +117,9 @@
         </div>
       </div>
 
-      <!-- Busy Gamer Rating -->
+      <!-- Rest Mode Rating -->
       <div class="rating-box">
-        <h2 class="rating-title">Busy Gamer Rating</h2>
+        <h2 class="rating-title">Rest Mode Rating</h2>
         <div class="rating-score">★★★★★</div>
         <p class="rating-description">
           <strong>5/5 Stars</strong> - Absolutely perfect for limited gaming time.
@@ -239,11 +247,11 @@
   <!-- Footer -->
   <footer class="blog-footer">
     <p>
-      The Busy Gamer &mdash; a gaming blog by <a href="../../index.html">Felipe del Canto</a>
+      Rest Mode &mdash; a gaming blog by <a href="../../index.html">Felipe del Canto</a>
     </p>
   </footer>
 
-  <script src="../scripts/blog-theme.js"></script>
+  <script src="../scripts/rest-mode-theme.js"></script>
 
 </body>
 </html>

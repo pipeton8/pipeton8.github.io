@@ -5,32 +5,32 @@
   <meta charset="utf-8">
   <script>
     (function () {
-      var saved = localStorage.getItem('busyGamerColorMode');
-      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      try {
+        if (localStorage.getItem('restModeColorMode') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      } catch (e) {}
     })();
   </script>
-  <title>About - The Busy Gamer</title>
+  <title>About - Rest Mode</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="About The Busy Gamer - game reviews written for people who don't have 100 hours to spare, and the Busy Gamer Rating system.">
+  <meta name="description" content="About Rest Mode - game reviews written for people who don't have 100 hours to spare, and the Rest Mode Rating system.">
   <meta name="keywords" content="about, busy gamer, game reviews, busy gamer rating">
 
   <!-- Icons -->
-  <link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16x16.png">
-  <link rel="manifest" href="../site.webmanifest">
-  <link rel="mask-icon" href="../icons/safari-pinned-tab.svg" color="#334257">
-  <meta name="msapplication-TileColor" content="#eeeeee">
-  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="../icons/rest-mode/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" type="image/png" sizes="32x32" href="../icons/rest-mode/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../icons/rest-mode/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../icons/rest-mode/apple-touch-icon.png">
+  <link rel="manifest" href="../icons/rest-mode/site.webmanifest">
+  <meta name="theme-color" content="#15181f">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- CSS Stylesheets -->
-  <link rel="stylesheet" href="css/blog-styles.css">
+  <link rel="stylesheet" href="css/rest-mode.css">
 
   <!-- Font Awesome -->
   <script src="https://kit.fontawesome.com/d1e054ce54.js" crossorigin="anonymous"></script>
@@ -50,7 +50,11 @@
   <!-- Navigation -->
   <nav class="blog-nav">
     <div class="blog-nav-container">
-      <a href="index.html" class="blog-nav-brand">The Busy Gamer</a>
+      <a href="index.html" class="blog-nav-brand">
+        <img class="brand-mark-dark" src="../icons/rest-mode/avatar-period.svg" alt="" aria-hidden="true">
+        <img class="brand-mark-light" src="../icons/rest-mode/avatar-period-light.svg" alt="" aria-hidden="true">
+        rest mode
+      </a>
       <div class="blog-nav-right">
         <ul class="blog-nav-links">
           <li><a href="index.html">Home</a></li>
@@ -68,21 +72,21 @@
     <div class="post-meta-row">
       <span class="post-category">About</span>
     </div>
-    <h1 class="post-full-title">About The Busy Gamer</h1>
+    <h1 class="post-full-title">About Rest Mode</h1>
   </header>
 
   <!-- Main Content -->
   <main class="blog-container">
 
     <a href="index.html" class="back-button">
-      <i class="fas fa-arrow-left"></i> Back to Blog
+      <i class="fas fa-arrow-left"></i> Back to Rest Mode
     </a>
 
     <article class="post-full">
 
       <div class="content-section">
         <p>
-          The Busy Gamer is a review blog for people whose backlog is bigger than their free time. Between work,
+          Rest Mode is a review blog for people whose backlog is bigger than their free time. Between work,
           errands, and everything else, most of us don't have 100+ hours to sink into a single game anymore &mdash;
           but that doesn't mean we've stopped wanting to play.
         </p>
@@ -98,9 +102,9 @@
           verdict &mdash; but always filtered through the lens of "does this respect my schedule?"
         </p>
 
-        <h2>The Busy Gamer Rating™</h2>
+        <h2>The Rest Mode Rating</h2>
         <p>
-          Each review ends with a five-star Busy Gamer Rating. It isn't a measure of overall quality; a three-star
+          Each review ends with a five-star Rest Mode Rating. It isn't a measure of overall quality; a three-star
           game here can still be a masterpiece. It's a measure of fit for a limited-time player: five stars means
           you can pick it up for twenty minutes and feel satisfied, while lower scores mean the game really wants
           a bigger, more uninterrupted block of your time.
@@ -121,11 +125,11 @@
   <!-- Footer -->
   <footer class="blog-footer">
     <p>
-      The Busy Gamer &mdash; a gaming blog by <a href="../index.html">Felipe del Canto</a>
+      Rest Mode &mdash; a gaming blog by <a href="../index.html">Felipe del Canto</a>
     </p>
   </footer>
 
-  <script src="scripts/blog-theme.js"></script>
+  <script src="scripts/rest-mode-theme.js"></script>
 
 </body>
 </html>
