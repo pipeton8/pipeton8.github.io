@@ -27,3 +27,30 @@ function updateThemeToggleIcon(mode) {
 window.addEventListener('DOMContentLoaded', () => {
   updateThemeToggleIcon(currentColorMode());
 });
+
+// Mobile hamburger menu
+function setNavMenu(open) {
+  const nav = document.querySelector('.blog-nav');
+  const btn = document.querySelector('.nav-menu-btn');
+  if (!nav || !btn) return;
+  nav.classList.toggle('nav-open', open);
+  btn.setAttribute('aria-expanded', String(open));
+  btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+}
+
+function toggleNavMenu() {
+  setNavMenu(!document.querySelector('.blog-nav').classList.contains('nav-open'));
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') setNavMenu(false);
+});
+
+document.addEventListener('click', (e) => {
+  // Close when a menu link is followed or when tapping outside the nav
+  if (e.target.closest('.blog-nav-links a') || !e.target.closest('.blog-nav')) setNavMenu(false);
+});
+
+window.matchMedia('(min-width: 769px)').addEventListener('change', (e) => {
+  if (e.matches) setNavMenu(false);
+});

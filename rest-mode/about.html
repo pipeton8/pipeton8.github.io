@@ -56,12 +56,17 @@
         rest mode
       </a>
       <div class="blog-nav-right">
-        <ul class="blog-nav-links">
+        <ul class="blog-nav-links" id="blog-nav-links">
           <li><a href="index.html">Home</a></li>
           <li><a href="about.html">About</a></li>
         </ul>
         <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle color theme" onclick="toggleColorMode()">
           <i class="fas fa-moon"></i>
+        </button>
+        <button class="nav-menu-btn" aria-label="Open menu" aria-controls="blog-nav-links" aria-expanded="false" onclick="toggleNavMenu()">
+          <span class="menu-bar"></span>
+          <span class="menu-bar"></span>
+          <span class="menu-bar"></span>
         </button>
       </div>
     </div>
