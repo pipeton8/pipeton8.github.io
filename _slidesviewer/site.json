@@ -1,0 +1,12 @@
+{
+  "target": "SlidesViewer",
+  "noindex": true,
+  "appleTouchIcon": false,
+  "settings": {
+    "storage": "ask",
+    "linkedDecks": "same-origin",
+    "publish": false,
+    "start": "blank"
+  },
+  "css": "site.css"
+}
