@@ -181,6 +181,11 @@ body.blog-body {
   color: var(--accent-primary);
 }
 
+/* Sun in dark mode (switch to light), moon in light mode (switch to dark) */
+.theme-toggle-btn .icon-moon { display: none; }
+:root[data-theme="light"] .theme-toggle-btn .icon-sun { display: none; }
+:root[data-theme="light"] .theme-toggle-btn .icon-moon { display: block; }
+
 /* Hamburger button: hidden on desktop, shown under 768px */
 .nav-menu-btn {
   display: none;
