@@ -5114,6 +5114,11 @@ html[data-notes="hidden"] #notes-pane { display: none; }
   letter-spacing: 0;
   text-transform: none;
 }
+#editor-slide-bar .slide-nav { margin-left: auto; display: inline-flex; align-items: center; gap: .35rem; letter-spacing: 0; text-transform: none; }
+#editor-slide-bar .slide-nav button { width: 1.7rem; height: 1.5rem; padding: 0; border: 1px solid var(--ui-bar-line); border-radius: .2rem; background: transparent; color: var(--ui-bar-strong); display: inline-grid; place-items: center; font-size: .7rem; }
+#editor-slide-bar .slide-nav button:hover:not(:disabled) { border-color: var(--ui-bar-strong); }
+#editor-slide-bar .slide-nav button:disabled { opacity: .35; cursor: default; }
+#editor-slide-position { min-width: 4.5ch; text-align: center; color: var(--ui-bar-text); font-weight: 600; }
 #editor-slide-id:hover { border-color: var(--ui-bar-line); border-style: dashed; }
 #editor-slide-id:focus { border-color: var(--ui-focus); border-style: solid; background: var(--ui-editor); color: var(--ui-text); outline: 0; }
 /* Syntax colours: the text box is transparent over #body-highlight, a copy of its text with colours
@@ -5158,7 +5163,7 @@ html[data-highlight="off"] #body-highlight { visibility: hidden; }
 #body-highlight .hl-emph { color: var(--hl-emph); }
 #body-highlight .hl-code { color: var(--hl-code); }
 #body-highlight .hl-punct { color: var(--hl-punct); }
-#body-highlight .hl-swatch { text-decoration-line: underline; text-decoration-thickness: .18em; text-underline-offset: .2em; }
+#body-highlight .hl-swatch { color: transparent; background: linear-gradient(var(--swatch), var(--swatch)) center / .44em .44em no-repeat, linear-gradient(var(--ui-line-strong), var(--ui-line-strong)) center / .56em .56em no-repeat; }
 #format-bar {
   display: flex;
   align-items: center;
@@ -5544,7 +5549,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides db16665929dd by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides d05d6b252587 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5555,7 +5560,7 @@ window.ModernSlidesEditor = (() => {
   const root = document.documentElement;
   const THEMES = ['auto', 'light', 'dark', 'slate'];
   const KEY_THEME = 'modernslides.editorTheme', KEY_PREFS = 'modernslides.editorPrefs';
-  const DEFAULTS = {textSize: 12, uiScale: 90, notes: true, rail: true, railWidth: 240, highlight: true};
+  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true};
   const clamp = (value, low, high, fallback) => Number.isFinite(Number(value)) ? Math.min(high, Math.max(low, Number(value))) : fallback;
   const store = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
   const load = key => { try { return localStorage.getItem(key); } catch { return null; } };
@@ -5573,10 +5578,10 @@ window.ModernSlidesEditor = (() => {
     return {
       textSize: clamp(saved.textSize, 12, 28, DEFAULTS.textSize),
       uiScale: clamp(saved.uiScale, 75, 125, DEFAULTS.uiScale),
-      notes: saved.notes !== false,
-      rail: typeof saved.rail === 'boolean' ? saved.rail : window.innerWidth > 720,
+      notes: typeof saved.notes === 'boolean' ? saved.notes : DEFAULTS.notes,
+      rail: typeof saved.rail === 'boolean' ? saved.rail : DEFAULTS.rail,
       railWidth: clamp(saved.railWidth, 120, 1400, DEFAULTS.railWidth),
-      highlight: saved.highlight !== false
+      highlight: typeof saved.highlight === 'boolean' ? saved.highlight : DEFAULTS.highlight
     };
   }
   function savePrefs(prefs) { store(KEY_PREFS, JSON.stringify(prefs)); }
@@ -5623,7 +5628,7 @@ window.ModernSlidesEditor = (() => {
   <main id="editor-main">
     <div id="workspace">
       <section id="author-pane">
-        <div id="editor-slide-bar"><label for="editor-slide-id">Slide ID</label><input id="editor-slide-id" type="text" spellcheck="false" autocomplete="off" title="Slide ID: type a new one and press Enter to rename the slide; links to it are updated" aria-label="Slide ID"></div>
+        <div id="editor-slide-bar"><label for="editor-slide-id">Slide ID</label><input id="editor-slide-id" type="text" spellcheck="false" autocomplete="off" title="Slide ID: type a new one and press Enter to rename the slide; links to it are updated" aria-label="Slide ID"><span class="slide-nav"><button id="editor-prev-slide" type="button" title="Previous slide" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button><span id="editor-slide-position" aria-live="polite"></span><button id="editor-next-slide" type="button" title="Next slide" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button></span></div>
         <div id="body-editor-wrap">
           <pre id="body-highlight" aria-hidden="true"></pre>
           <textarea id="body-editor" spellcheck="true" aria-label="Slide body syntax" placeholder="Title: New slide&#10;&#10;Text: Write here."></textarea>
@@ -7507,7 +7512,16 @@ function renameSlide(oldId, requested) {
   state.autosaveChain.then(() => setStatus(message, 'saved'));
   return true;
 }
+/* The slide bar's arrows move through every slide, hidden ones included, for when the thumbnails are
+   hidden or out of reach. */
+function editorStepSlide(delta) {
+  const slides = state.deck.slides;
+  const next = slides[slides.findIndex(slide => slide.id === state.currentSlideId) + delta];
+  if (next) selectSlide(next.id, {commit:true, step:0});
+}
 function setupSlideIdField() {
+  $('editor-prev-slide').addEventListener('click', () => editorStepSlide(-1));
+  $('editor-next-slide').addEventListener('click', () => editorStepSlide(1));
   const field = $('editor-slide-id');
   field.addEventListener('keydown', event => {
     if (event.key === 'Enter' && !event.metaKey && !event.ctrlKey) { event.preventDefault(); field.blur(); }
@@ -7559,6 +7573,10 @@ function loadEditorsFromCurrent() {
   debouncedCommit.cancel();
   state.editorSlideId = slide.id;
   $('editor-slide-id').value = slide.id;
+  const position = state.deck.slides.indexOf(slide);
+  $('editor-slide-position').textContent = `${position + 1} / ${state.deck.slides.length}`;
+  $('editor-prev-slide').disabled = position <= 0;
+  $('editor-next-slide').disabled = position >= state.deck.slides.length - 1;
   $('slide-layout').value = slide.layout || 'auto';
   $('body-editor').value = slideToText(slide);
   $('speaker-editor').value = slide.speaker || '';
@@ -10630,7 +10648,7 @@ function setupEditorSettings() {
   $('toggle-notes').addEventListener('click', () => updateEditorPrefs({notes: !editorPrefs.readPrefs().notes}));
   $('editor-settings-reset').addEventListener('click', () => {
     editorPrefs.store(editorPrefs.KEY_THEME, '');
-    updateEditorPrefs({...editorPrefs.DEFAULTS, rail: window.innerWidth > 720});
+    updateEditorPrefs({...editorPrefs.DEFAULTS});
     applyEditorTheme();
   });
   syncEditorSettings();
@@ -10722,9 +10740,10 @@ function highlightInline(text) {
     else if (escape) out += hlSpan('punct', escape);
     else if (colorText != null) {
       const color = inlineColorValue(colorName);
-      /* The chosen colour underlines the text rather than colouring it: a dark blue on a dark editor, or
-         yellow on white, would be unreadable. An underline never changes the layout. */
-      out += color ? `${hlSpan('punct', '[')}<span class="hl-swatch" style="text-decoration-color:${color}">${escapeHtml(colorText)}</span>${hlSpan('punct', `]{${colorName}}`)}` : escapeHtml(whole);
+      /* The text keeps its normal colour (a dark blue on the dark editor, or yellow on white, would be
+         unreadable); a square of the chosen colour stands in for the "{" before its name, as colour
+         pickers show it. It takes exactly that character's place, so the layout is unchanged. */
+      out += color ? `${hlSpan('punct', '[')}${escapeHtml(colorText)}${hlSpan('punct', ']')}<span class="hl-swatch" style="--swatch:${color}">{</span>${hlSpan('punct', `${colorName}}`)}` : escapeHtml(whole);
     }
     else if (link) out += hlSpan('link', link);
     else if (emph) out += hlSpan('emph', emph);
