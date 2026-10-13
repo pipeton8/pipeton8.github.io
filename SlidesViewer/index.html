@@ -440,6 +440,10 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   padding: var(--bolditalic-pad);
 }
 .slide-frame a { color: var(--accent); text-decoration-thickness: .055em; text-underline-offset: .12em; }
+/* \button[Label](#id): a link drawn as a button, in any theme; themes may restyle it. */
+.slide-frame .ms-button-link { display: inline-block; padding: .1em .75em .15em; border-radius: 1em; background: var(--accent); color: var(--bg); font-size: .8em; font-weight: 600; font-style: normal; line-height: 1.3; text-decoration: none; vertical-align: .08em; white-space: nowrap; }
+.slide-frame .ms-button-right { float: right; margin-left: .5em; }
+.slide-frame .ms-button-left { float: left; margin-right: .5em; }
 
 .block-list {
   margin: calc(var(--u) * .15) 0;
@@ -687,14 +691,14 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .theme-singapore a { color: var(--accent); text-decoration: none; }
 /* Beamer buttons; \hfill-ed ones float to the right margin of their line. */
 .theme-singapore strong.ms-button { font-weight: inherit; }
-.theme-singapore strong.ms-button > a, .theme-singapore strong.ms-button > em > a {
+.theme-singapore strong.ms-button > a, .theme-singapore strong.ms-button > em > a, .theme-singapore .ms-button-link {
   display: inline-block; padding: .14em .75em .2em; border-radius: 1em; background: #858585; color: #fff;
   font-size: calc(var(--u) * .44); font-style: normal; font-weight: 500; font-variant-caps: small-caps; letter-spacing: .02em;
   line-height: 1.15; vertical-align: .18em; white-space: nowrap;
 }
 .theme-singapore strong.ms-button > em { font-style: normal; color: inherit; }
 .theme-singapore strong.ms-button-right { float: right; margin-left: .5em; }
-.theme-singapore .slide-title strong.ms-button > a { vertical-align: .3em; }
+.theme-singapore .slide-title strong.ms-button > a, .theme-singapore .slide-title .ms-button-link { vertical-align: .3em; }
 /* \lit{}: a faded, small citation line. */
 .theme-singapore em.ms-cite-line { display: inline-block; font-style: normal; font-size: .7em; opacity: .25; }
 .theme-singapore em.ms-cite-line a { color: #000; }
@@ -5163,7 +5167,7 @@ html[data-highlight="off"] #body-highlight { visibility: hidden; }
 #body-highlight .hl-emph { color: var(--hl-emph); }
 #body-highlight .hl-code { color: var(--hl-code); }
 #body-highlight .hl-punct { color: var(--hl-punct); }
-#body-highlight .hl-swatch { color: transparent; background: linear-gradient(var(--swatch), var(--swatch)) center / .44em .44em no-repeat, linear-gradient(var(--ui-line-strong), var(--ui-line-strong)) center / .56em .56em no-repeat; }
+#body-highlight .hl-swatch { text-decoration-line: underline; text-decoration-thickness: .18em; text-underline-offset: .2em; }
 #format-bar {
   display: flex;
   align-items: center;
@@ -5285,9 +5289,20 @@ html[data-highlight="off"] #body-highlight { visibility: hidden; }
 #toolbar .menu-button { width: auto; padding: 0 .45rem; display: inline-flex; align-items: center; gap: .3rem; }
 #toolbar .menu-button .caret { font-size: .7em; opacity: .7; }
 #toolbar .menu-button[aria-expanded="true"] { border-color: var(--ui-hover-line); background: var(--ui-subtle); }
-#format-bar .notes-toggle { margin-left: auto; display: inline-flex; align-items: center; gap: .35rem; font-size: .82rem; }
-#format-bar .notes-toggle[aria-pressed="false"] { color: var(--ui-muted); }
-#format-bar .notes-toggle + .layout-control { margin-left: .6rem; }
+#format-bar .bar-toggles { margin-left: auto; display: inline-flex; gap: .3rem; }
+#format-bar .bar-toggle { display: inline-flex; align-items: center; gap: .35rem; font-size: .82rem; }
+#format-bar .bar-toggle[aria-pressed="false"] { color: var(--ui-muted); }
+#format-bar .bar-toggle[aria-pressed="true"] { border-color: var(--ui-hover-line); }
+#format-bar .bar-toggles + .layout-control { margin-left: .6rem; }
+/* Live preview of the current slide, beside or below the text (refreshEditorPreview). */
+#edit-split { min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); }
+html[data-preview="side"] #edit-split { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+html[data-preview="below"] #edit-split { grid-template-rows: minmax(0,1fr) minmax(0,1fr); }
+#editor-preview { display: none; min-width: 0; min-height: 0; padding: .6rem; background: var(--ui-rail); }
+html[data-preview="side"] #editor-preview { display: block; border-left: 1px solid var(--ui-line); }
+html[data-preview="below"] #editor-preview { display: block; border-top: 1px solid var(--ui-line); }
+#editor-preview-slot { width: 100%; height: 100%; background: transparent; }
+#editor-preview-slot .slide-frame { box-shadow: 0 .3rem 1.2rem rgba(0,0,0,.25); pointer-events: none; }
 
 /* Toolbar menus: fixed panels opened above their button (setupMenus). */
 .menu {
@@ -5549,7 +5564,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides d05d6b252587 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 842144ca8486 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5560,7 +5575,7 @@ window.ModernSlidesEditor = (() => {
   const root = document.documentElement;
   const THEMES = ['auto', 'light', 'dark', 'slate'];
   const KEY_THEME = 'modernslides.editorTheme', KEY_PREFS = 'modernslides.editorPrefs';
-  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true};
+  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true, preview: 'off', previewLayout: 'side'};
   const clamp = (value, low, high, fallback) => Number.isFinite(Number(value)) ? Math.min(high, Math.max(low, Number(value))) : fallback;
   const store = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
   const load = key => { try { return localStorage.getItem(key); } catch { return null; } };
@@ -5581,7 +5596,9 @@ window.ModernSlidesEditor = (() => {
       notes: typeof saved.notes === 'boolean' ? saved.notes : DEFAULTS.notes,
       rail: typeof saved.rail === 'boolean' ? saved.rail : DEFAULTS.rail,
       railWidth: clamp(saved.railWidth, 120, 1400, DEFAULTS.railWidth),
-      highlight: typeof saved.highlight === 'boolean' ? saved.highlight : DEFAULTS.highlight
+      highlight: typeof saved.highlight === 'boolean' ? saved.highlight : DEFAULTS.highlight,
+      preview: ['off', 'side', 'below'].includes(saved.preview) ? saved.preview : DEFAULTS.preview,
+      previewLayout: ['side', 'below'].includes(saved.previewLayout) ? saved.previewLayout : DEFAULTS.previewLayout
     };
   }
   function savePrefs(prefs) { store(KEY_PREFS, JSON.stringify(prefs)); }
@@ -5600,6 +5617,7 @@ window.ModernSlidesEditor = (() => {
     root.style.setProperty('--editor-font-size', `${prefs.textSize}px`);
     root.dataset.notes = prefs.notes ? 'shown' : 'hidden';
     root.dataset.highlight = prefs.highlight ? 'on' : 'off';
+    root.dataset.preview = prefs.preview;
     applyRail(prefs.rail, prefs.railWidth);
   }
   applyTheme();
@@ -5629,9 +5647,12 @@ window.ModernSlidesEditor = (() => {
     <div id="workspace">
       <section id="author-pane">
         <div id="editor-slide-bar"><label for="editor-slide-id">Slide ID</label><input id="editor-slide-id" type="text" spellcheck="false" autocomplete="off" title="Slide ID: type a new one and press Enter to rename the slide; links to it are updated" aria-label="Slide ID"><span class="slide-nav"><button id="editor-prev-slide" type="button" title="Previous slide" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button><span id="editor-slide-position" aria-live="polite"></span><button id="editor-next-slide" type="button" title="Next slide" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button></span></div>
+        <div id="edit-split">
         <div id="body-editor-wrap">
           <pre id="body-highlight" aria-hidden="true"></pre>
           <textarea id="body-editor" spellcheck="true" aria-label="Slide body syntax" placeholder="Title: New slide&#10;&#10;Text: Write here."></textarea>
+        </div>
+        <div id="editor-preview" aria-label="Live preview of this slide"><div id="editor-preview-slot" class="stage-slot"></div></div>
         </div>
         <div id="format-bar" role="toolbar" aria-label="Text formatting">
           <button type="button" data-format="bold" title="Bold" aria-label="Bold"><strong>B</strong></button>
@@ -5640,7 +5661,10 @@ window.ModernSlidesEditor = (() => {
           <button type="button" data-format="left" title="Align left" aria-label="Align left"><i class="fa-solid fa-align-left"></i></button>
           <button type="button" data-format="center" title="Align center" aria-label="Align center"><i class="fa-solid fa-align-center"></i></button>
           <button type="button" data-format="right" title="Align right" aria-label="Align right"><i class="fa-solid fa-align-right"></i></button>
-          <button id="toggle-notes" type="button" class="notes-toggle" title="Show or hide speaker notes and print annotations" aria-pressed="true"><i class="fa-regular fa-note-sticky"></i> Notes</button>
+          <span class="bar-toggles">
+            <button id="toggle-preview" type="button" class="bar-toggle" title="Show or hide a live preview of this slide (beside or below the text: editor settings)" aria-pressed="false"><i class="fa-regular fa-window-maximize"></i> Preview</button>
+            <button id="toggle-notes" type="button" class="bar-toggle" title="Show or hide speaker notes and print annotations" aria-pressed="true"><i class="fa-regular fa-note-sticky"></i> Notes</button>
+          </span>
           <label class="layout-control" for="slide-layout">
             <span>Layout</span>
             <select id="slide-layout" title="Slide layout" aria-label="Slide layout">
@@ -5721,6 +5745,7 @@ window.ModernSlidesEditor = (() => {
   <label class="menu-field"><span>Colours</span><select id="editor-theme-select" aria-label="Editor theme"></select></label>
   <label class="menu-field"><span>Text size</span><input id="editor-text-size" type="range" min="12" max="28" step="1"><output id="editor-text-size-value"></output></label>
   <label class="menu-field"><span>Interface size</span><input id="editor-ui-scale" type="range" min="75" max="125" step="5"><output id="editor-ui-scale-value"></output></label>
+  <label class="menu-field"><span>Live preview</span><select id="editor-preview-mode" aria-label="Live preview"><option value="off">Off</option><option value="side">Beside the text</option><option value="below">Below the text</option></select></label>
   <label class="menu-check"><input id="editor-show-notes" type="checkbox"><span>Speaker notes and print annotations</span></label>
   <label class="menu-check"><input id="editor-show-rail" type="checkbox"><span>Slide thumbnails</span></label>
   <label class="menu-check"><input id="editor-highlight" type="checkbox"><span>Syntax colours</span></label>
@@ -5813,6 +5838,7 @@ End</pre>
       <section>
         <h3>Inline and reveals</h3>
         <pre>**bold**  *italic*  ***both***
+\button[Next](#slide-id)  \button(right)[Back](#id)
 [coloured text]{blue}  [text]{#1f8a1c}
 [text](https://example.com)
 [go to slide](#slide-id)
@@ -7349,12 +7375,54 @@ function trimBareUrl(url) {
   });
   return {core, tail};
 }
+/* [label](url) starting at index start of source: {label, url, end}, or null. */
+function parseInlineLink(source, start) {
+  const labelEnd = source.indexOf('](', start + 1);
+  if (labelEnd <= start) return null;
+  let j = labelEnd + 2, depth = 1;
+  while (j < source.length && depth > 0) {
+    if (source[j] === '\\') { j += 2; continue; }
+    if (source[j] === '(') depth++;
+    else if (source[j] === ')') depth--;
+    j++;
+  }
+  if (depth !== 0) return null;
+  const url = source.slice(labelEnd + 2, j - 1);
+  if (!url || /\s/.test(url)) return null;
+  return {label: source.slice(start + 1, labelEnd), url, end: j};
+}
 function maskInlineLinksAndUrls(text) {
   const tokens = [];
   const source = String(text ?? '');
   let out = '', i = 0;
   const pushToken = html => { const token = `\uE300${tokens.length}\uE301`; tokens.push(html); out += token; };
   while (i < source.length) {
+    /* \button[Label](#id) or \button(right)[Label](url): a link drawn as a button. Options in
+       parentheses as for directives: right or align=right floats it to the right, left to the left. */
+    if (source[i] === '\\' && /^\\button(?![A-Za-z])/i.test(source.slice(i, i + 8))) {
+      let j = i + 7, align = '';
+      if (source[j] === '(') {
+        const close = source.indexOf(')', j);
+        if (close > j) {
+          const options = source.slice(j + 1, close).split(/[;,]/).map(part => part.trim().toLowerCase());
+          if (options.some(option => option === 'right' || option === 'align=right')) align = 'right';
+          else if (options.some(option => option === 'left' || option === 'align=left')) align = 'left';
+          j = close + 1;
+        }
+      }
+      const link = source[j] === '[' ? parseInlineLink(source, j) : null;
+      if (link) {
+        const classes = `ms-button-link${align ? ` ms-button-${align}` : ''}`;
+        const safeLabel = formatInlineEmphasis(escapeHtml(link.label));
+        if (link.url.startsWith('#')) {
+          const id = link.url.slice(1);
+          pushToken(`<a href="#${escapeAttr(id)}" class="ms-link-internal ${classes}" data-slide-id="${escapeAttr(id)}">${safeLabel}</a>`);
+        } else if (/^(https?:|mailto:)/i.test(link.url)) {
+          pushToken(`<a href="${escapeAttr(link.url)}" class="${classes}" target="_blank" rel="noopener noreferrer">${safeLabel}</a>`);
+        } else pushToken(`<span class="${classes}">${safeLabel}</span>`);
+        i = link.end; continue;
+      }
+    }
     if (source[i] === '[') {
       const labelEnd = source.indexOf('](', i + 1);
       if (labelEnd > i) {
@@ -8267,6 +8335,15 @@ function refreshPresentation({preserveLive = false} = {}) {
   const position = visible.findIndex(item => item.id === slide.id);
   $('mobile-status').textContent = `${position >= 0 ? position + 1 : '–'}/${visible.length}`;
   refreshMobileNotes(slide);
+  refreshEditorPreview();
+}
+/* The editor's live preview: the current slide with every reveal shown, refreshed whenever slides
+   render or the selection changes (both pass through refreshPresentation). */
+function refreshEditorPreview() {
+  const slot = $('editor-preview-slot');
+  const slide = state.deck && currentSlide();
+  if (!state.editMode || !slide || document.documentElement.dataset.preview === 'off') { if (slot.firstChild) slot.replaceChildren(); return; }
+  mountFrame(slot, slide.id, slide.steps || 0);
 }
 function refreshMobileNotes(slide) {
   const notes = $('mobile-notes');
@@ -10607,6 +10684,7 @@ function editorThemeChoice() { return editorPrefs.themeChoice(); }
 function applyEditorTheme(choice = editorThemeChoice()) {
   editorPrefs.applyTheme(choice);
   $('editor-theme-select').value = choice;
+  if (typeof scheduleHighlight === 'function') scheduleHighlight();
 }
 function setupEditorThemes() {
   const select = $('editor-theme-select');
@@ -10628,6 +10706,7 @@ function updateEditorPrefs(change) {
   syncEditorSettings(prefs);
   fitFrameInSlot($('presentation-slot'));
   scheduleHighlight();
+  refreshEditorPreview();
 }
 function syncEditorSettings(prefs = editorPrefs.readPrefs()) {
   $('editor-text-size').value = prefs.textSize;
@@ -10638,6 +10717,8 @@ function syncEditorSettings(prefs = editorPrefs.readPrefs()) {
   $('editor-show-rail').checked = prefs.rail;
   $('editor-highlight').checked = prefs.highlight;
   $('toggle-notes').setAttribute('aria-pressed', String(prefs.notes));
+  $('editor-preview-mode').value = prefs.preview;
+  $('toggle-preview').setAttribute('aria-pressed', String(prefs.preview !== 'off'));
 }
 function setupEditorSettings() {
   $('editor-text-size').addEventListener('input', event => updateEditorPrefs({textSize: Number(event.target.value)}));
@@ -10646,6 +10727,12 @@ function setupEditorSettings() {
   $('editor-show-rail').addEventListener('change', event => updateEditorPrefs({rail: event.target.checked}));
   $('editor-highlight').addEventListener('change', event => updateEditorPrefs({highlight: event.target.checked}));
   $('toggle-notes').addEventListener('click', () => updateEditorPrefs({notes: !editorPrefs.readPrefs().notes}));
+  $('editor-preview-mode').addEventListener('change', event => updateEditorPrefs(event.target.value === 'off' ? {preview: 'off'} : {preview: event.target.value, previewLayout: event.target.value}));
+  $('toggle-preview').addEventListener('click', () => {
+    const prefs = editorPrefs.readPrefs();
+    updateEditorPrefs({preview: prefs.preview === 'off' ? prefs.previewLayout : 'off'});
+  });
+  new ResizeObserver(() => fitFrameInSlot($('editor-preview-slot'))).observe($('editor-preview-slot'));
   $('editor-settings-reset').addEventListener('click', () => {
     editorPrefs.store(editorPrefs.KEY_THEME, '');
     updateEditorPrefs({...editorPrefs.DEFAULTS});
@@ -10730,7 +10817,7 @@ const HIGHLIGHT_DIRECTIVES = new Set([...DIRECTIVES, 'speakernote', 'printnote']
 const hlSpan = (kind, text) => text ? `<span class="hl-${kind}">${escapeHtml(text)}</span>` : '';
 /* Inline markup: math, escapes, [text]{color}, links, bold/italic, bare URLs. Colours only, never a
    change of weight or style, so the coloured copy keeps the text box's exact layout. */
-const HIGHLIGHT_INLINE = /(\$\$[\s\S]*?\$\$|\\\([\s\S]*?\\\)|(?<!\\)\$(?!\s)(?:\\.|[^$\n])+?(?<!\\)\$)|(\\[*_|$:\\])|\[([^\[\]\n]*)\]\{([^{}\n]*)\}|(\[[^\]\n]*\]\([^)\s]*\))|(\*\*\*[^*\n]+\*\*\*|\*\*[^*\n]+\*\*|\*[^*\s][^*\n]*\*|(?<![A-Za-z0-9])_[^_\n]+_(?![A-Za-z0-9]))|(https?:\/\/[^\s<>]+)/g;
+const HIGHLIGHT_INLINE = /(\$\$[\s\S]*?\$\$|\\\([\s\S]*?\\\)|(?<!\\)\$(?!\s)(?:\\.|[^$\n])+?(?<!\\)\$)|(\\[*_|$:\\])|\[([^\[\]\n]*)\]\{([^{}\n]*)\}|(\\button(?:\([^)\n]*\))?\[[^\]\n]*\]\([^)\s]*\)|\[[^\]\n]*\]\([^)\s]*\))|(\*\*\*[^*\n]+\*\*\*|\*\*[^*\n]+\*\*|\*[^*\s][^*\n]*\*|(?<![A-Za-z0-9])_[^_\n]+_(?![A-Za-z0-9]))|(https?:\/\/[^\s<>]+)/g;
 function highlightInline(text) {
   let out = '', last = 0;
   for (const match of String(text).matchAll(HIGHLIGHT_INLINE)) {
@@ -10740,10 +10827,11 @@ function highlightInline(text) {
     else if (escape) out += hlSpan('punct', escape);
     else if (colorText != null) {
       const color = inlineColorValue(colorName);
-      /* The text keeps its normal colour (a dark blue on the dark editor, or yellow on white, would be
-         unreadable); a square of the chosen colour stands in for the "{" before its name, as colour
-         pickers show it. It takes exactly that character's place, so the layout is unchanged. */
-      out += color ? `${hlSpan('punct', '[')}${escapeHtml(colorText)}${hlSpan('punct', ']')}<span class="hl-swatch" style="--swatch:${color}">{</span>${hlSpan('punct', `${colorName}}`)}` : escapeHtml(whole);
+      /* The text is drawn in its colour, made readable on this editor's background (see
+         readableEditorColor); if the colour cannot be resolved, it is underlined in it instead. */
+      const readable = color ? readableEditorColor(color) : null;
+      const body = readable ? `<span style="color:${readable}">${escapeHtml(colorText)}</span>` : `<span class="hl-swatch" style="text-decoration-color:${color}">${escapeHtml(colorText)}</span>`;
+      out += color ? `${hlSpan('punct', '[')}${body}${hlSpan('punct', `]{${colorName}}`)}` : escapeHtml(whole);
     }
     else if (link) out += hlSpan('link', link);
     else if (emph) out += hlSpan('emph', emph);
@@ -10778,6 +10866,40 @@ function highlightSlideText(text) {
   });
   /* A trailing newline needs something after it to get a line box of its own, as in the text box. */
   return lines.join('\n') + (String(text ?? '').endsWith('\n') ? ' ' : '');
+}
+/* [text]{color} in the editor: the text is drawn in its colour, lightened on a dark editor or darkened
+   on a light one just until it reads at 4.5:1, so the hue stays recognisable but never vanishes (a
+   pure blue on the dark editor would). Theme colours (accent, muted, text) take the current slide
+   theme's values. The slide itself always uses the exact colour. */
+const readableColorCache = new Map();
+const parseRgb = value => { const match = String(value).match(/rgba?\(([^)]+)\)/); return match ? match[1].split(/[ ,/]+/).filter(Boolean).slice(0, 3).map(Number) : null; };
+const relativeLuminance = rgb => rgb.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }).reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0);
+const contrastRatio = (a, b) => { const [x, y] = [relativeLuminance(a), relativeLuminance(b)].sort((p, q) => q - p); return (x + .05) / (y + .05); };
+function readableEditorColor(color) {
+  const frame = document.querySelector('#render-bank .slide-frame');
+  const key = `${document.documentElement.dataset.editorTheme}|${state.deck?.meta.theme}|${color}`;
+  if (readableColorCache.has(key)) return readableColorCache.get(key);
+  let resolved = color;
+  const themeVar = color.match(/^var\((--[\w-]+)\)$/);
+  if (themeVar) resolved = frame ? getComputedStyle(frame).getPropertyValue(themeVar[1]).trim() : '';
+  let result = null;
+  if (resolved) {
+    const probe = document.createElement('span');
+    probe.style.color = 'rgb(1, 2, 3)';
+    probe.style.color = resolved;
+    document.body.appendChild(probe);
+    const rgb = parseRgb(getComputedStyle(probe).color);
+    probe.remove();
+    const background = parseRgb(getComputedStyle($('body-editor-wrap')).backgroundColor);
+    if (rgb && background && rgb.join() !== '1,2,3') {
+      const target = relativeLuminance(background) < .5 ? 255 : 0;
+      let current = rgb;
+      for (let step = 0; step < 20 && contrastRatio(current, background) < 4.5; step++) current = current.map(v => Math.round(v + (target - v) * .12));
+      result = `rgb(${current.join(', ')})`;
+    }
+  }
+  readableColorCache.set(key, result);
+  return result;
 }
 let highlightFrame = 0;
 function scheduleHighlight() {
