@@ -5311,7 +5311,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 03775ca4e381 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides af3d97eb9718 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank"};</script>
 <style id="site-styles">
@@ -5424,11 +5424,11 @@ body.dragging-file #drop-overlay { display:grid; }
       <button id="portable-deck" type="button" title="Download a portable copy with every image inside (Cmd/Ctrl+Shift+S)" aria-label="Download portable copy"><i class="fa-solid fa-suitcase"></i></button>
       <button id="remember-decks" type="button" title="Remember decks on this device" aria-label="Remember decks on this device" aria-pressed="false" hidden><i class="fa-solid fa-hard-drive"></i></button>
       <button id="publish-deck" type="button" title="Publish deck" aria-label="Publish deck"><i class="fa-solid fa-cloud-arrow-up"></i></button>
-      <button id="speaker-button" type="button" title="Speaker view (S)" aria-label="Speaker view"><i class="fa-solid fa-person-chalkboard"></i></button>
+      <button id="speaker-button" type="button" title="Speaker view (S; Cmd/Ctrl+Shift+Enter presents with it)" aria-label="Speaker view"><i class="fa-solid fa-person-chalkboard"></i></button>
       <button id="print-deck" type="button" title="Print slides (P)" aria-label="Print slides"><i class="fa-solid fa-print"></i></button>
       <button id="print-progressive" type="button" title="Print every reveal step (Shift+P)" aria-label="Print every reveal step"><i class="fa-solid fa-layer-group"></i></button>
       <button id="print-notes" type="button" title="Print slides with notes (N)" aria-label="Print slides with notes"><i class="fa-regular fa-note-sticky"></i></button>
-      <button id="present-button" class="primary" type="button" title="Presentation view (E)" aria-label="Presentation view"><i class="fa-solid fa-bullhorn"></i></button>
+      <button id="present-button" class="primary" type="button" title="Presentation view (E or Cmd/Ctrl+Enter)" aria-label="Presentation view"><i class="fa-solid fa-bullhorn"></i></button>
     </div>
 
     <div id="statusbar">
@@ -5560,6 +5560,10 @@ BigText: Appears on the second advance.
       <section>
         <h3>Keyboard</h3>
         <pre>E   edit / present
+Cmd/Ctrl+Enter  edit / present,
+    also while typing
+Cmd/Ctrl+Shift+Enter  present
+    with the speaker window
 F   fullscreen
 S   speaker window
 P   print slides
@@ -10193,6 +10197,14 @@ function setupEvents() {
     const command = event.ctrlKey || event.metaKey;
     if (command && !event.altKey && !modal) {
       const commandKey = event.key.toLowerCase();
+      /* Cmd/Ctrl+Enter switches views and Cmd/Ctrl+Shift+Enter starts a talk with the speaker window;
+         both work while typing in the editor, where the single-letter keys cannot. */
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (event.shiftKey) { toggleEdit(false); openSpeaker(); }
+        else toggleEdit();
+        return;
+      }
       if (commandKey === 's' && !event.shiftKey) { event.preventDefault(); saveDeck(); return; }
       if (commandKey === 's' && event.shiftKey) { event.preventDefault(); downloadPortableDeck(); return; }
       if (commandKey === 'p') { event.preventDefault(); preparePrint(false); return; }
