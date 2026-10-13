@@ -26,6 +26,6 @@ The main nudge was Sony’s announcement on July 1st (2026) that they would be [
 
 Around the same time as this announcement, my wife and I finished playing _What Remains of Edith Finch_ (as I said, some reviews might take time to arrive!). PS+ gave this game for free in May 2019 and I hadn’t played it since. I hope the review conveys how impressive this game is, because it represents one of the best attempts I’ve seen in gaming to create a truly _artistic_ experience: to share a strong message through art and player interaction. This game made us feel so. many. things. that I needed to put them into words. Besides, this is one of the perfect games for rest mode: the full game is short, each of the game’s stories is short, and while the story is emotionally complex, it is not difficult nor does it require the player to memorize too many elements. In a rush, I would say that this game is _the_ symbol for this blog. To clarify, this is not saying that this game is a masterpiece (which I might be tempted to agree with) or that I haven’t played/will play something better. In the end, my message is that one of the main pillars of this blog is what games can make players _feel_. It is not about games being good or bad, but about the craftsmanship that comes with this art form, and how it can be used (or misused!) to produce something in their audience. I hope I can translate some of those feelings in my reviews.
 
-Hope you enjoy your visit!
+Enjoy your visit!
 
 Felipe
