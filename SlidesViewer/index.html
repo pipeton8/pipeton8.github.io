@@ -29,17 +29,114 @@ window.MathJax = {
 <style id="app-styles">
 @import url("https://fonts.googleapis.com/css2?family=Afacad+Flux:slnt,wght@-14..0,100..1000&family=Alegreya+SC:ital,wght@0,400;0,500;0,700;1,400&family=Antonio:wght@100..700&family=Anybody:ital,wdth,wght@0,50..150,100..900;1,50..150,100..900&family=Besley:ital,wght@0,400..900;1,400..900&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Brygada+1918:ital,wght@0,400..700;1,400..700&family=Caprasimo&family=Cardo:ital,wght@0,400;0,700;1,400&family=Castoro:ital@0;1&family=Crimson+Pro:ital,wght@0,200..900;1,200..900&family=DM+Serif+Display:ital@0;1&family=Domine:wght@400..700&family=Encode+Sans:wdth,wght@75..125,100..900&family=Funnel+Display:wght@300..800&family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Gabarito:wght@400..900&family=Golos+Text:wght@400..900&family=Hedvig+Letters+Serif:opsz@12..24&family=Imbue:opsz,wght@10..100,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Kalnia:wdth,wght@100..125,100..700&family=Kumbh+Sans:wght@100..900&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Nunito+Sans:ital,opsz,wdth,wght@0,6..12,75..125,200..1000;1,6..12,75..125,200..1000&family=Playfair:ital,opsz,wdth,wght@0,5..1200,87.5..112.5,300..900;1,5..1200,87.5..112.5,300..900&family=Radio+Canada+Big:ital,wght@0,400..700;1,400..700&family=Rethink+Sans:ital,wght@0,400..800;1,400..800&family=Rubik:ital,wght@0,300..900;1,300..900&family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&family=Sofia+Sans+Semi+Condensed:ital,wght@0,1..1000;1,1..1000&family=Sorts+Mill+Goudy:ital@0;1&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Tektur:wdth,wght@75..100,400..900&family=Tenor+Sans&family=Tinos:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@200..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Dela+Gothic+One&family=Gantari:ital,wght@0,100..900;1,100..900&family=Gelasio:ital,wght@0,400..700;1,400..700&family=Hedvig+Letters+Sans&family=Krona+One&family=Mona+Sans:ital,wdth,wght@0,75..125,200..900;1,75..125,200..900&family=Noto+Serif+Display:ital,wdth,wght@0,62.5..100,100..900;1,62.5..100,100..900&family=Onest:wght@100..900&family=Pathway+Extreme:ital,opsz,wdth,wght@0,8..12,75..100,100..900;1,8..12,75..100,100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&family=Reddit+Sans:ital,wght@0,200..900;1,200..900&display=swap");
+/* Editor themes. Every colour of the editor (not the slides) comes from these variables. The light
+   values are the defaults; data-editor-theme on <html> (set before the first paint, see
+   applyEditorTheme) selects dark or slate. Auto resolves to light or dark from the system setting. */
 :root {
-  --ui-bg: #f4f2ed;
-  --ui-panel: #fffef9;
+  color-scheme: light;
+  --ui-bg: #f4f2ed;          /* behind everything */
+  --ui-rail: #ebe8e0;        /* slide thumbnails column */
+  --ui-panel: #fffef9;       /* toolbar, status line */
+  --ui-editor: #fff;         /* text boxes */
+  --ui-surface: #fff;        /* buttons, menus, inputs */
+  --ui-card: #fff;           /* dialogs */
+  --ui-subtle: #faf9f5;      /* format bar, secondary boxes */
+  --ui-code-bg: #f4f2ed;     /* help examples */
+  --ui-bar: #f4f1e9;         /* slide ID bar */
+  --ui-bar-line: #d7d2c8;
+  --ui-bar-text: #555;
+  --ui-bar-strong: #202020;
+  --ui-tab: #e9e6df;
+  --ui-tab-text: #444;
+  --ui-tab-active-text: #222;
   --ui-text: #1d1d1d;
-  --ui-muted: #707070;
+  --ui-muted: #666;
+  --ui-emphasis: #222;       /* strong links in dialogs */
   --ui-line: #d7d2c8;
-  --ui-accent: #222;
+  --ui-line-strong: #bbb;
+  --ui-hover-line: #555;
+  --ui-focus: #222;
+  --ui-selected: #222;       /* selected thumbnail */
+  --ui-highlight: #2368d8;   /* drop position when reordering */
+  --ui-accent: #222;         /* pressed toggle buttons */
+  --ui-on-accent: #fff;
+  --ui-primary: #1f6f3e;     /* the Present button */
+  --ui-on-primary: #fff;
   --ui-danger: #a52a2a;
   --ui-success: #137333;
+  --ui-working: #735c00;
+  --ui-error-bg: #fff3f3;
+  --ui-error-line: #d6aaaa;
   --ui-font: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --ui-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+:root[data-editor-theme="dark"] {
+  color-scheme: dark;
+  --ui-bg: #181818;
+  --ui-rail: #1f1f1f;
+  --ui-panel: #252526;
+  --ui-editor: #1e1e1e;
+  --ui-surface: #2d2d30;
+  --ui-card: #252526;
+  --ui-subtle: #2a2a2b;
+  --ui-code-bg: #1e1e1e;
+  --ui-bar: #2a2a2b;
+  --ui-bar-line: #3a3a3c;
+  --ui-bar-text: #a8a8a8;
+  --ui-bar-strong: #ececec;
+  --ui-tab: #2a2a2b;
+  --ui-tab-text: #b4b4b4;
+  --ui-tab-active-text: #ececec;
+  --ui-text: #e4e4e4;
+  --ui-muted: #a0a0a0;
+  --ui-emphasis: #f0f0f0;
+  --ui-line: #3a3a3c;
+  --ui-line-strong: #55555a;
+  --ui-hover-line: #8a8a8f;
+  --ui-focus: #6aa7ff;
+  --ui-selected: #6aa7ff;
+  --ui-highlight: #6aa7ff;
+  --ui-accent: #3b82f6;
+  --ui-on-accent: #fff;
+  --ui-primary: #2f855a;
+  --ui-on-primary: #fff;
+  --ui-danger: #ff8a80;
+  --ui-success: #6fcf86;
+  --ui-working: #e3b341;
+  --ui-error-bg: #3a1f1f;
+  --ui-error-line: #7a3b3b;
+}
+/* Slate: the palette of pipeton8.github.io, where the hosted viewer lives. */
+:root[data-editor-theme="slate"] {
+  color-scheme: light;
+  --ui-bg: #eeeeee;
+  --ui-rail: #eeeeee;
+  --ui-panel: #f7f7f7;
+  --ui-editor: #fff;
+  --ui-surface: #fff;
+  --ui-card: #fff;
+  --ui-subtle: #f7f7f7;
+  --ui-code-bg: #eeeeee;
+  --ui-bar: #334257;
+  --ui-bar-line: #334257;
+  --ui-bar-text: rgba(255, 255, 255, .72);
+  --ui-bar-strong: #fff;
+  --ui-tab: #e4e6e9;
+  --ui-tab-text: #5f6b76;
+  --ui-tab-active-text: #334257;
+  --ui-text: #1f2328;
+  --ui-muted: #5f6b76;
+  --ui-emphasis: #334257;
+  --ui-line: #d3d8de;
+  --ui-line-strong: #c3c9d0;
+  --ui-hover-line: #476072;
+  --ui-focus: #548ca8;
+  --ui-selected: #334257;
+  --ui-highlight: #548ca8;
+  --ui-accent: #548ca8;
+  --ui-on-accent: #fff;
+  --ui-primary: #334257;
+  --ui-on-primary: #fff;
 }
 
 * { box-sizing: border-box; }
@@ -4816,7 +4913,7 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   overflow: auto;
   padding: 1rem 1rem 2rem;
   border-right: 1px solid var(--ui-line);
-  background: #ebe8e0;
+  background: var(--ui-rail);
   scrollbar-gutter: stable;
 }
 #thumb-list {
@@ -4845,20 +4942,20 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   right: 0;
   top: -.48rem;
   height: 3px;
-  background: #2368d8;
+  background: var(--ui-highlight);
 }
 .thumb-canvas {
   position: relative;
   width: 192px;
   height: 108px;
   overflow: hidden;
-  border: 1px solid #c9c4ba;
+  border: 1px solid var(--ui-line-strong);
   border-radius: 0;
   background: #000;
   box-shadow: none;
 }
 .thumb.selected .thumb-canvas {
-  outline: 3px solid var(--ui-accent);
+  outline: 3px solid var(--ui-selected);
   outline-offset: 2px;
 }
 .thumb-canvas .slide-frame { transform: scale(.12); pointer-events: none; }
@@ -4904,7 +5001,7 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   place-items: center;
   font-size: 11px;
 }
-.thumb-controls button:hover:not(:disabled) { background: #fff; border-color: #111; }
+.thumb-controls button:hover:not(:disabled) { background: #fff; border-color: var(--ui-selected); }
 .thumb-hidden-label {
   position: absolute;
   z-index: 20;
@@ -4930,7 +5027,7 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   display: block;
   padding: 0;
   overflow: hidden;
-  background: #fff;
+  background: var(--ui-editor);
 }
 #author-pane {
   width: 100%;
@@ -4941,7 +5038,7 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   grid-template-rows: auto minmax(0,1fr) auto minmax(7rem,.27fr);
   border: 0;
   border-radius: 0;
-  background: #fff;
+  background: var(--ui-editor);
   overflow: hidden;
 }
 #editor-slide-bar {
@@ -4950,15 +5047,15 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   gap: .65rem;
   min-height: 2.55rem;
   padding: .52rem 1.1rem;
-  border-bottom: 1px solid var(--ui-line);
-  background: #f4f1e9;
-  color: #555;
+  border-bottom: 1px solid var(--ui-bar-line);
+  background: var(--ui-bar);
+  color: var(--ui-bar-text);
   font: 700 .76rem/1 var(--ui-mono);
   letter-spacing: .08em;
   text-transform: uppercase;
 }
 #editor-slide-id {
-  color: #202020;
+  color: var(--ui-bar-strong);
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
@@ -4973,8 +5070,9 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   border-radius: 0;
   outline: 0;
   padding: 1rem 1.1rem;
-  background: #fff;
-  color: #202020;
+  background: var(--ui-editor);
+  color: var(--ui-text);
+  caret-color: var(--ui-text);
   font: 18px/1.62 var(--ui-mono);
   tab-size: 2;
   white-space: pre-wrap;
@@ -4987,7 +5085,7 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   padding: .42rem .65rem;
   border-top: 1px solid var(--ui-line);
   border-bottom: 1px solid var(--ui-line);
-  background: #faf9f5;
+  background: var(--ui-subtle);
 }
 #format-bar button {
   min-width: 2rem;
@@ -4995,8 +5093,8 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   padding: .25rem .45rem;
   border: 1px solid var(--ui-line);
   border-radius: 0;
-  background: #fff;
-  color: #222;
+  background: var(--ui-surface);
+  color: var(--ui-text);
 }
 #format-bar .layout-control {
   margin-left: auto;
@@ -5015,8 +5113,8 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   padding: .25rem .45rem;
   border: 1px solid var(--ui-line);
   border-radius: 0;
-  background: #fff;
-  color: #222;
+  background: var(--ui-surface);
+  color: var(--ui-text);
   text-transform: none;
   letter-spacing: normal;
   font-weight: 500;
@@ -5034,10 +5132,10 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   border: 0;
   border-right: 1px solid var(--ui-line);
   border-radius: 0;
-  background: #e9e6df;
-  color: #444;
+  background: var(--ui-tab);
+  color: var(--ui-tab-text);
 }
-#notes-tabs button.active { background: #fff; font-weight: 700; }
+#notes-tabs button.active { background: var(--ui-editor); color: var(--ui-tab-active-text); font-weight: 700; }
 .notes-editor {
   width: 100%;
   height: 100%;
@@ -5047,8 +5145,9 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   border-radius: 0;
   outline: 0;
   padding: .7rem .9rem;
-  background: #fff;
-  color: #222;
+  background: var(--ui-editor);
+  color: var(--ui-text);
+  caret-color: var(--ui-text);
   font: 15px/1.5 var(--ui-font);
 }
 
@@ -5073,8 +5172,8 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   padding: 0;
   border: 1px solid var(--ui-line);
   border-radius: 0;
-  background: #fff;
-  color: #222;
+  background: var(--ui-surface);
+  color: var(--ui-text);
   display: inline-grid;
   place-items: center;
   font-size: .882rem;
@@ -5085,17 +5184,18 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   padding: .3rem .55rem;
   border: 1px solid var(--ui-line);
   border-radius: 0;
-  background: #fff;
-  color: #222;
+  background: var(--ui-surface);
+  color: var(--ui-text);
 }
-#toolbar button:hover:not(:disabled), #toolbar select:hover { border-color: #555; }
-#toolbar button.primary { background: #1f6f3e; border-color: #1f6f3e; color: #fff; }
+#toolbar button:hover:not(:disabled), #toolbar select:hover { border-color: var(--ui-hover-line); }
+#toolbar button.primary { background: var(--ui-primary); border-color: var(--ui-primary); color: var(--ui-on-primary); }
 #toolbar button.danger { color: var(--ui-danger); }
 #toolbar button[hidden] { display: none; }
-#toolbar button[aria-pressed="true"] { background: var(--ui-accent); border-color: var(--ui-accent); color: #fff; }
+#toolbar button[aria-pressed="true"] { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-on-accent); }
 .toolbar-spacer { flex: 1 0 1.5rem; }
 .toolbar-group { display: inline-flex; flex: 0 0 auto; gap: .25rem; padding-right: .35rem; margin-right: .05rem; border-right: 1px solid var(--ui-line); }
 #theme-select { min-width: 10rem; }
+#editor-theme-select { min-width: 6.5rem; }
 
 #statusbar {
   display: flex;
@@ -5130,34 +5230,34 @@ body.dragging-file #drop-overlay { display:grid; }
 #drop-overlay .drop-card { padding:2rem 2.8rem; border:3px dashed #fff; border-radius:.8rem; background:rgba(20,20,20,.85); color:#fff; font:600 clamp(1.1rem, 2.4vw, 1.6rem)/1.3 var(--ui-font); }
 .modal { position:fixed; inset:0; z-index:300; display:none; place-items:center; padding:1rem; background:rgba(0,0,0,.6); }
 .modal.open { display:grid; }
-.modal-card { width:min(760px,96vw); max-height:88vh; overflow:auto; padding:1.2rem; border-radius:.65rem; background:#fff; color:#222; box-shadow:0 1.5rem 4rem rgba(0,0,0,.35); }
+.modal-card { width:min(760px,96vw); max-height:88vh; overflow:auto; padding:1.2rem; border-radius:.65rem; background:var(--ui-card); color:var(--ui-text); box-shadow:0 1.5rem 4rem rgba(0,0,0,.35); }
 .modal-card.wide { width:min(1050px,97vw); }
 .modal-card h2 { margin:.1rem 0 1rem; }
 .modal-actions { display:flex; justify-content:flex-end; gap:.55rem; margin-top:1rem; }
-.modal-actions button { padding:.5rem .8rem; border:1px solid #bbb; border-radius:.35rem; background:#fff; color:#222; }
+.modal-actions button { padding:.5rem .8rem; border:1px solid var(--ui-line-strong); border-radius:.35rem; background:var(--ui-surface); color:var(--ui-text); }
 .help-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem; }
-.help-grid pre { overflow:auto; padding:.8rem; border-radius:.4rem; background:#f4f2ed; font: .78rem/1.45 var(--ui-mono); white-space:pre-wrap; }
+.help-grid pre { overflow:auto; padding:.8rem; border-radius:.4rem; background:var(--ui-code-bg); color:var(--ui-text); font: .78rem/1.45 var(--ui-mono); white-space:pre-wrap; }
 #asset-list { display:grid; gap:.6rem; }
-.asset-row { display:grid; grid-template-columns:64px minmax(0,1fr) auto; gap:.75rem; align-items:center; padding:.55rem; border:1px solid #ddd; border-radius:.45rem; }
-.asset-row img { width:64px; height:56px; object-fit:cover; border-radius:.3rem; background:#eee; }
+.asset-row { display:grid; grid-template-columns:64px minmax(0,1fr) auto; gap:.75rem; align-items:center; padding:.55rem; border:1px solid var(--ui-line); border-radius:.45rem; }
+.asset-row img { width:64px; height:56px; object-fit:cover; border-radius:.3rem; background:var(--ui-subtle); }
 .asset-meta { min-width:0; }
 .asset-name { font:700 .82rem/1.3 var(--ui-mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.asset-info { color:#666; font-size:.76rem; }
+.asset-info { color:var(--ui-muted); font-size:.76rem; }
 #restore-list { display:grid; gap:.6rem; }
-.restore-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.75rem; align-items:center; padding:.6rem .7rem; border:1px solid #ddd; border-radius:.45rem; }
+.restore-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.75rem; align-items:center; padding:.6rem .7rem; border:1px solid var(--ui-line); border-radius:.45rem; }
 .restore-meta { min-width:0; }
 .restore-title { font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.restore-info { color:#666; font-size:.78rem; }
-.restore-row button { padding:.45rem .8rem; border:1px solid #bbb; border-radius:.35rem; background:#fff; color:#222; }
-#json-view { width:100%; min-height:58vh; resize:vertical; padding:.8rem; font:12px/1.45 var(--ui-mono); }
+.restore-info { color:var(--ui-muted); font-size:.78rem; }
+.restore-row button { padding:.45rem .8rem; border:1px solid var(--ui-line-strong); border-radius:.35rem; background:var(--ui-surface); color:var(--ui-text); }
+#json-view { width:100%; min-height:58vh; resize:vertical; padding:.8rem; border:1px solid var(--ui-line); background:var(--ui-editor); color:var(--ui-text); font:12px/1.45 var(--ui-mono); }
 .settings-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
 .settings-grid .field { display:grid; gap:.35rem; min-width:0; }
 .settings-grid .field.wide { grid-column:1/-1; }
-.settings-grid label { color:#555; font-size:.78rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
-.settings-grid input { width:100%; min-width:0; padding:.62rem .7rem; border:1px solid #c9c4ba; border-radius:.28rem; background:#fff; color:#222; }
-.settings-grid input:focus { outline:2px solid #222; outline-offset:1px; border-color:#222; }
-.help-gallery-link { display:inline-flex; align-items:center; gap:.4rem; margin-top:.35rem; padding:.55rem .75rem; border:1px solid #bbb; border-radius:.3rem; background:#faf9f5; color:#222; font-weight:700; text-decoration:none; }
-.help-gallery-link:hover { border-color:#222; background:#fff; }
+.settings-grid label { color:var(--ui-muted); font-size:.78rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+.settings-grid input { width:100%; min-width:0; padding:.62rem .7rem; border:1px solid var(--ui-line-strong); border-radius:.28rem; background:var(--ui-surface); color:var(--ui-text); }
+.settings-grid input:focus { outline:2px solid var(--ui-focus); outline-offset:1px; border-color:var(--ui-focus); }
+.help-gallery-link { display:inline-flex; align-items:center; gap:.4rem; margin-top:.35rem; padding:.55rem .75rem; border:1px solid var(--ui-line-strong); border-radius:.3rem; background:var(--ui-subtle); color:var(--ui-emphasis); font-weight:700; text-decoration:none; }
+.help-gallery-link:hover { border-color:var(--ui-emphasis); background:var(--ui-surface); }
 
 .publish-card {
   width: min(620px, 96vw);
@@ -5165,7 +5265,7 @@ body.dragging-file #drop-overlay { display:grid; }
 
 .publish-intro {
   margin: -.2rem 0 1rem;
-  color: #555;
+  color: var(--ui-muted);
   line-height: 1.5;
 }
 
@@ -5176,7 +5276,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 .publish-field label {
-  color: #444;
+  color: var(--ui-muted);
   font-size: .8rem;
   font-weight: 700;
 }
@@ -5184,21 +5284,21 @@ body.dragging-file #drop-overlay { display:grid; }
 .publish-field input {
   width: 100%;
   padding: .7rem .75rem;
-  border: 1px solid #bbb;
+  border: 1px solid var(--ui-line-strong);
   border-radius: .28rem;
-  background: #fff;
-  color: #222;
+  background: var(--ui-surface);
+  color: var(--ui-text);
   font: 16px/1.35 var(--ui-font);
 }
 
 .publish-field input:focus {
-  outline: 2px solid #222;
+  outline: 2px solid var(--ui-focus);
   outline-offset: 1px;
-  border-color: #222;
+  border-color: var(--ui-focus);
 }
 
 .publish-field-help {
-  color: #777;
+  color: var(--ui-muted);
   font-size: .78rem;
   line-height: 1.4;
 }
@@ -5206,16 +5306,16 @@ body.dragging-file #drop-overlay { display:grid; }
 .publish-destination {
   margin: .85rem 0;
   padding: .75rem .85rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--ui-line);
   border-radius: .3rem;
-  background: #f7f5ef;
+  background: var(--ui-subtle);
   line-height: 1.45;
 }
 
 .publish-destination-label {
   display: block;
   margin-bottom: .25rem;
-  color: #666;
+  color: var(--ui-muted);
   font-size: .75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -5231,24 +5331,24 @@ body.dragging-file #drop-overlay { display:grid; }
 .publish-readme {
   margin: 1rem 0 .25rem;
   padding-top: .85rem;
-  border-top: 1px solid #e0ddd5;
-  color: #555;
+  border-top: 1px solid var(--ui-line);
+  color: var(--ui-muted);
   font-size: .84rem;
   line-height: 1.45;
 }
 
 .publish-readme a {
-  color: #222;
+  color: var(--ui-emphasis);
   font-weight: 700;
 }
 
 .publish-error {
   margin: .8rem 0 0;
   padding: .65rem .75rem;
-  border: 1px solid #d6aaaa;
+  border: 1px solid var(--ui-error-line);
   border-radius: .28rem;
-  background: #fff3f3;
-  color: #8a2020;
+  background: var(--ui-error-bg);
+  color: var(--ui-danger);
   font-size: .84rem;
   line-height: 1.4;
 }
@@ -5311,7 +5411,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides af3d97eb9718 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 6c502fc21a85 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank"};</script>
 <style id="site-styles">
@@ -5346,6 +5446,18 @@ body.dragging-file #drop-overlay { display:grid; }
 .help-gallery-link { background: var(--ui-panel); color: var(--ui-primary); }
 .help-gallery-link:hover { border-color: var(--ui-primary); }
 </style>
+<script>
+/* Editor theme, applied before the first paint so the page never flashes the wrong colours: the
+   viewer's own choice (this browser), else the site's default, else auto. See applyEditorTheme. */
+(() => {
+  const themes = ['auto', 'light', 'dark', 'slate'];
+  let choice = null;
+  try { choice = localStorage.getItem('modernslides.editorTheme'); } catch {}
+  if (!themes.includes(choice)) choice = themes.includes(window.MODERNSLIDES_SITE?.editorTheme) ? window.MODERNSLIDES_SITE.editorTheme : 'auto';
+  const dark = !!window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+  document.documentElement.dataset.editorTheme = choice === 'auto' ? (dark ? 'dark' : 'light') : choice;
+})();
+</script>
 </head>
 <body>
 <div id="presentation-view" aria-label="Presentation">
@@ -5408,6 +5520,7 @@ body.dragging-file #drop-overlay { display:grid; }
       </span>
       <label class="sr-only" for="theme-select">Theme</label>
       <select id="theme-select" title="Theme" aria-label="Theme"></select>
+      <select id="editor-theme-select" title="Editor colours (kept in this browser)" aria-label="Editor theme"></select>
       <span class="toolbar-group">
         <button id="undo" type="button" title="Undo" aria-label="Undo" disabled><i class="fa-solid fa-rotate-left"></i></button>
         <button id="redo" type="button" title="Redo" aria-label="Redo" disabled><i class="fa-solid fa-rotate-right"></i></button>
@@ -5891,14 +6004,17 @@ const escapeAttr = escapeHtml;
      linkedDecks  'any' (default) or 'same-origin': which ?deck= URLs may be opened.
      publish      false hides the Publish button (a host without the PHP api/).
      start        'demo' (default) or 'blank': the deck shown when there is nothing to reopen.
-                  ?demo always opens the demo. */
+                  ?demo always opens the demo.
+     editorTheme  'auto' (default), 'light', 'dark' or 'slate': the editor's colours until the
+                  viewer picks a theme in the toolbar (that choice is kept in the browser). */
 const SITE = (() => {
   const input = globalThis.MODERNSLIDES_SITE && typeof globalThis.MODERNSLIDES_SITE === 'object' ? globalThis.MODERNSLIDES_SITE : {};
   return {
     storage: input.storage === 'ask' ? 'ask' : 'device',
     linkedDecks: input.linkedDecks === 'same-origin' ? 'same-origin' : 'any',
     publish: input.publish !== false,
-    start: input.start === 'blank' ? 'blank' : 'demo'
+    start: input.start === 'blank' ? 'blank' : 'demo',
+    editorTheme: ['light', 'dark', 'slate'].includes(input.editorTheme) ? input.editorTheme : 'auto'
   };
 })();
 const STORAGE_REMEMBER = 'modernslides.v2.remember';
@@ -6282,7 +6398,7 @@ function nearestVisibleId(fromIndex = currentSlideIndex()) {
 
 function setStatus(text, kind = 'saved') {
   $('save-status').textContent = state.statusNote ? `${text} · ${state.statusNote}` : text;
-  $('save-status').style.color = kind === 'error' ? 'var(--ui-danger)' : kind === 'working' ? '#735c00' : 'var(--ui-success)';
+  $('save-status').style.color = kind === 'error' ? 'var(--ui-danger)' : kind === 'working' ? 'var(--ui-working)' : 'var(--ui-success)';
 }
 function setPwaStatus(text = '', stateName = '') {
   const target = $('pwa-status');
@@ -10245,9 +10361,38 @@ function populateThemes() {
     option.value = id; option.textContent = label; select.appendChild(option);
   });
 }
+/* Editor themes colour the editor around the slides, never the slides. The choice is a per-browser
+   preference (not deck data); auto follows the system's light or dark setting as it changes. */
+const EDITOR_THEMES = [['auto', 'Editor: Auto'], ['light', 'Editor: Light'], ['dark', 'Editor: Dark'], ['slate', 'Editor: Slate']];
+const STORAGE_EDITOR_THEME = 'modernslides.editorTheme';
+const systemDark = window.matchMedia?.('(prefers-color-scheme: dark)');
+function editorThemeChoice() {
+  let choice = null;
+  try { choice = localStorage.getItem(STORAGE_EDITOR_THEME); } catch {}
+  return EDITOR_THEMES.some(([id]) => id === choice) ? choice : SITE.editorTheme;
+}
+function applyEditorTheme(choice = editorThemeChoice()) {
+  document.documentElement.dataset.editorTheme = choice === 'auto' ? (systemDark?.matches ? 'dark' : 'light') : choice;
+  $('editor-theme-select').value = choice;
+}
+function setupEditorThemes() {
+  const select = $('editor-theme-select');
+  EDITOR_THEMES.forEach(([id, label]) => {
+    const option = document.createElement('option');
+    option.value = id; option.textContent = label; select.appendChild(option);
+  });
+  select.addEventListener('change', () => {
+    try { localStorage.setItem(STORAGE_EDITOR_THEME, select.value); } catch {}
+    applyEditorTheme(select.value);
+    select.blur();
+  });
+  systemDark?.addEventListener?.('change', () => { if (editorThemeChoice() === 'auto') applyEditorTheme('auto'); });
+  applyEditorTheme();
+}
 
 async function initialize() {
   populateThemes();
+  setupEditorThemes();
   setupEvents();
   registerOfflineSupport();
   $('publish-deck').hidden = !SITE.publish;
