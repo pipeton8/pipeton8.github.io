@@ -5128,6 +5128,10 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
 }
 
 /* ---------- Modals ---------- */
+/* Shown while a file is dragged over the window (see setupDeckDrop). */
+#drop-overlay { position:fixed; inset:0; z-index:400; display:none; place-items:center; padding:1rem; background:rgba(0,0,0,.45); pointer-events:none; }
+body.dragging-file #drop-overlay { display:grid; }
+#drop-overlay .drop-card { padding:1.1rem 1.5rem; border:2px dashed #fff; border-radius:.6rem; background:rgba(20,20,20,.82); color:#fff; font:600 1.05rem/1.3 var(--ui-font); }
 .modal { position:fixed; inset:0; z-index:300; display:none; place-items:center; padding:1rem; background:rgba(0,0,0,.6); }
 .modal.open { display:grid; }
 .modal-card { width:min(760px,96vw); max-height:88vh; overflow:auto; padding:1.2rem; border-radius:.65rem; background:#fff; color:#222; box-shadow:0 1.5rem 4rem rgba(0,0,0,.35); }
@@ -5311,7 +5315,7 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 0b09370dde17 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides e716bc6f134d by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank"};</script>
 <style id="site-styles">
@@ -5569,6 +5573,10 @@ Esc leave fullscreen or presentation
 Cmd/Ctrl+S save the deck
 Cmd/Ctrl+P print slides
 
+Drop a .json deck on the window
+to open it; drop images on the
+slide text to embed them.
+
 In the editor:
 t: Title      b: BigText
 x: Text       s: SmallText
@@ -5642,6 +5650,7 @@ Code(python): labels the code block as Python.</pre>
 </div>
 
 <input id="file-input" type="file" class="hidden" accept=".json,.txt,application/json,text/plain">
+<div id="drop-overlay" aria-hidden="true"><div class="drop-card"><i class="fa-solid fa-file-import"></i> Drop a deck (.json) to open it</div></div>
 <div id="render-bank" aria-hidden="true"></div>
 <div id="print-root"></div>
 
@@ -8498,6 +8507,73 @@ async function loadFile(file, {fileHandle = null} = {}) {
   const text = await file.text();
   const deck = deckFromText(text, file.name);
   await applyDeck(deck, {filename:file.name.replace(/\.(txt|json)$/i, '') + '.json', baseUrl:new URL('.', location.href).href, fileHandle, reason:'replaced by opening a file'});
+  /* A browser never learns an opened file's folder, so paths relative to the deck cannot load. */
+  const relative = deckRelativeSources(state.deck);
+  if (relative.length) {
+    await state.autosaveChain;
+    setStatus(`${relative.length} image${relative.length === 1 ? '' : 's'} with paths relative to the deck cannot load from an opened file (e.g. ${relative[0]}): pack the deck, or open it by URL with ?deck=`, 'error');
+  }
+}
+/* Local image paths that resolve against the deck's own folder (not embedded, remote, or root-relative). */
+function deckRelativeSources(deck) {
+  const found = new Set();
+  const visit = src => {
+    const value = String(src || '').trim();
+    if (value && !/^(asset:|data:|blob:|[a-z][a-z0-9+.-]*:|\/|#)/i.test(value)) found.add(value);
+  };
+  const walk = blocks => (blocks || []).forEach(block => {
+    if (block.type === 'image') visit(block.src);
+    if (block.type === 'website') visit(block.poster);
+    if (block.type === 'columns') block.columns.forEach(column => walk(column.blocks));
+    if (block.type === 'table') block.rows.forEach(row => row.forEach(cell => { if (cell && typeof cell === 'object') walk(cell.blocks); }));
+  });
+  visit(deck.meta.logo);
+  deck.slides.forEach(slide => { visit(slide.background?.src); walk(slide.blocks); });
+  return [...found];
+}
+/* ---------- Drop a deck file to open it ---------- */
+const DECK_FILE_RE = /\.(json|txt)$/i;
+const draggingFiles = event => [...(event.dataTransfer?.types || [])].includes('Files');
+/* During a drag only the files' types are known: anything but images may be a deck. */
+const draggingPossibleDeck = event => [...(event.dataTransfer?.items || [])].some(item => item.kind === 'file' && !item.type.startsWith('image/'));
+function droppedDeckIndex(dataTransfer) {
+  return [...(dataTransfer?.files || [])].findIndex(file => DECK_FILE_RE.test(file.name) || file.type === 'application/json');
+}
+/* Open the first deck file among those dropped. Call it from the drop event itself: browsers that
+   support it hand over a writable file handle (so Save writes back to that file) only while the
+   event is being dispatched. */
+function openDroppedDeck(dataTransfer) {
+  const index = droppedDeckIndex(dataTransfer);
+  if (index < 0) return false;
+  const file = dataTransfer.files[index];
+  const item = [...(dataTransfer.items || [])].filter(entry => entry.kind === 'file')[index];
+  let handlePromise = null;
+  try { handlePromise = item?.getAsFileSystemHandle?.() || null; } catch {}
+  (async () => {
+    let handle = null;
+    try { handle = await handlePromise; } catch {}
+    if (handle?.kind !== 'file') handle = null;
+    try { await loadFile(file, {fileHandle:handle}); }
+    catch (error) { alert(`Could not load deck: ${error.message}`); }
+  })();
+  return true;
+}
+function setupDeckDrop() {
+  const show = on => document.body.classList.toggle('dragging-file', on);
+  window.addEventListener('dragover', event => {
+    if (!draggingFiles(event)) return;
+    event.preventDefault();   // without this the browser would navigate away to the dropped file
+    event.dataTransfer.dropEffect = 'copy';
+    show(draggingPossibleDeck(event));
+  });
+  window.addEventListener('dragleave', event => { if (!event.relatedTarget) show(false); });
+  window.addEventListener('dragend', () => show(false));
+  window.addEventListener('drop', event => {
+    show(false);
+    if (!draggingFiles(event)) return;
+    event.preventDefault();
+    if (!openDroppedDeck(event.dataTransfer)) setStatus('Drop a .json deck to open it; drop images on the slide text to add them', 'error');
+  });
 }
 function candidateUrls(deckValue) {
   const value = String(deckValue || '').trim();
@@ -9810,7 +9886,12 @@ function setupEvents() {
     await handleImageFiles(images);
   });
   ['dragenter','dragover','dragleave','drop'].forEach(name => $('body-editor').addEventListener(name, event => { event.preventDefault(); event.stopPropagation(); }));
-  $('body-editor').addEventListener('drop', async event => handleImageFiles(event.dataTransfer?.files || []));
+  $('body-editor').addEventListener('drop', async event => {
+    document.body.classList.remove('dragging-file');
+    if (openDroppedDeck(event.dataTransfer)) return;
+    await handleImageFiles(event.dataTransfer?.files || []);
+  });
+  setupDeckDrop();
 
   $('format-bar').addEventListener('mousedown', event => {
     if (event.target.closest('button')) event.preventDefault();
