@@ -13,7 +13,10 @@ Do not edit `SlidesViewer/` by hand; the next deploy replaces it. Change these f
   - `publish`: `false` hides the Publish button (GitHub Pages cannot run its PHP endpoint).
   - `start`: `"blank"` opens a blank deck when there is nothing to reopen; `"demo"` the demo.
     `?demo` always opens the demo.
-- `site.css`: the editor's colours, applied after the app's own styles.
+  - `editorTheme`: the editor's colours until a visitor picks others in the toolbar: `"slate"` (this
+    site's palette, built into ModernSlides), `"auto"` (follows the visitor's light or dark setting),
+    `"light"` or `"dark"`.
+- `css` (optional, not used now): a stylesheet beside `site.json`, applied after the app's own styles.
 
 The folder starts with `_`, so Jekyll does not publish it. A deploy reads these files from
 `origin/main`, so commit and push changes here before the next deploy (or run
