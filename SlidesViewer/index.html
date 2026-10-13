@@ -515,7 +515,7 @@ button:disabled { cursor: not-allowed; opacity: .42; }
    the edge and text 1cm (4.25cqw) further in. Header: lines name navigation-bar sections (see
    buildNavbar). Inline roles marked by markInlineRoles: strong.ms-button is a grey Beamer button,
    .ms-button-right one pushed to the right margin, em.ms-cite-line a faded citation line, and
-   strong.ms-strong-em (***text***) blue text. */
+   colours come from the general [text]{color} syntax. */
 .theme-singapore {
   --base: 2.425cqw; --bg: #ffffff; --text: #000000; --accent: #1f8a1c; --accent-2: #8c8c8c; --line: #000000;
   --body-font: "Fira Sans", Helvetica, sans-serif; --display-font: "Fira Sans", Helvetica, sans-serif; --sans-font: "Fira Sans", Helvetica, sans-serif;
@@ -574,9 +574,6 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 /* \lit{}: a faded, small citation line. */
 .theme-singapore em.ms-cite-line { display: inline-block; font-style: normal; font-size: .7em; opacity: .25; }
 .theme-singapore em.ms-cite-line a { color: #000; }
-/* \blue{} */
-.theme-singapore strong.ms-strong-em { font-weight: 400; }
-.theme-singapore strong.ms-strong-em > em { font-style: normal; color: #0000ff; }
 /* Aside: a small grey note in the bottom-right corner, right-aligned to the text margin, above the
    footer. Slides with an aside reserve room for two lines of it under the body, so the two never
    overlap (a longer aside should be shortened). */
@@ -584,7 +581,6 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .theme-singapore .slide-aside { top: auto; bottom: 2cqw; right: calc(var(--slide-pad-right) + var(--text-indent)); width: auto; max-width: 45cqw; text-align: right; }
 /* Figures. */
 .theme-singapore .image-caption { color: #000; margin-top: .3em; }
-.theme-singapore .slide-column { justify-content: flex-start; }
 .theme-singapore .slide-column .block-image { flex: 0 1 auto; }
 /* Tables: booktabs-like, a double rule above and below, a single rule under the header only. */
 .theme-singapore .block-table { border-collapse: separate; border-spacing: 0; border-top: .3cqw double #000; border-bottom: .3cqw double #000; line-height: 1.2; }
@@ -5315,7 +5311,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 8f2b83cede6b by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 03775ca4e381 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank"};</script>
 <style id="site-styles">
@@ -5425,6 +5421,7 @@ body.dragging-file #drop-overlay { display:grid; }
       <button id="manage-assets" type="button" title="Manage pasted images" aria-label="Manage images"><i class="fa-solid fa-images"></i></button>
       <button id="view-json" type="button" title="View canonical JSON" aria-label="View JSON"><i class="fa-solid fa-code"></i></button>
       <button id="save-deck" type="button" title="Save deck" aria-label="Save deck"><i class="fa-solid fa-floppy-disk"></i></button>
+      <button id="portable-deck" type="button" title="Download a portable copy with every image inside (Cmd/Ctrl+Shift+S)" aria-label="Download portable copy"><i class="fa-solid fa-suitcase"></i></button>
       <button id="remember-decks" type="button" title="Remember decks on this device" aria-label="Remember decks on this device" aria-pressed="false" hidden><i class="fa-solid fa-hard-drive"></i></button>
       <button id="publish-deck" type="button" title="Publish deck" aria-label="Publish deck"><i class="fa-solid fa-cloud-arrow-up"></i></button>
       <button id="speaker-button" type="button" title="Speaker view (S)" aria-label="Speaker view"><i class="fa-solid fa-person-chalkboard"></i></button>
@@ -5529,6 +5526,7 @@ End</pre>
       <section>
         <h3>Inline and reveals</h3>
         <pre>**bold**  *italic*  ***both***
+[coloured text]{blue}  [text]{#1f8a1c}
 [text](https://example.com)
 [go to slide](#slide-id)
 $E=mc^2$ and $$x^2$$
@@ -5572,6 +5570,7 @@ Home / End first / last slide
 Esc leave fullscreen or presentation
 Cmd/Ctrl+S save the deck
 Cmd/Ctrl+P print slides
+Cmd/Ctrl+Shift+S portable copy
 
 Drop a .json deck on the window
 to open it; drop images on the
@@ -7100,6 +7099,44 @@ function maskInlineLinksAndUrls(text) {
   }
   return {masked:out, tokens};
 }
+/* Coloured text: [text]{color}, where color is a theme colour (accent, muted, text), a CSS colour
+   name, or a hex value. The brackets become inert markers before links are parsed, so emphasis,
+   links and math inside the text still work; the markers turn into spans at the end. Anything else
+   in braces is left as written. */
+const THEME_TEXT_COLORS = {accent: 'var(--accent)', muted: 'var(--accent-2)', text: 'var(--text)'};
+function inlineColorValue(name) {
+  const value = String(name).trim().toLowerCase();
+  if (THEME_TEXT_COLORS[value]) return THEME_TEXT_COLORS[value];
+  if (/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/.test(value)) return value;
+  if (/^[a-z]{3,20}$/.test(value) && (globalThis.CSS?.supports?.('color', value) ?? true)) return value;
+  return null;
+}
+function maskColorSpans(text) {
+  const source = String(text ?? '');
+  const colors = [], opens = new Map(), closes = new Map();
+  for (let i = 0; i < source.length; i++) {
+    if (source[i] !== '[') continue;
+    let depth = 0, end = -1;
+    for (let j = i; j < source.length; j++) {
+      if (source[j] === '[') depth++;
+      else if (source[j] === ']' && --depth === 0) { end = j; break; }
+    }
+    const brace = end >= 0 && source[end + 1] === '{' ? source.indexOf('}', end + 2) : -1;
+    const color = brace > 0 ? inlineColorValue(source.slice(end + 2, brace)) : null;
+    if (!color) continue;
+    opens.set(i, colors.length);
+    closes.set(end, brace);
+    colors.push(color);
+  }
+  if (!colors.length) return {masked: source, colors};
+  let out = '';
+  for (let i = 0; i < source.length; i++) {
+    if (opens.has(i)) out += `\uE400${opens.get(i)}\uE401`;
+    else if (closes.has(i)) { out += '\uE402'; i = closes.get(i); }
+    else out += source[i];
+  }
+  return {masked: out, colors};
+}
 function inlineMarkup(text) {
   /* First remove genuine math expressions from consideration. */
   const math = maskMathSegments(String(text ?? ''));
@@ -7108,7 +7145,8 @@ function inlineMarkup(text) {
      MathJax sees it as \$ rather than as a math delimiter. */
   const escaped = maskEscapes(protectNonMathDollars(math.masked));
 
-  const linked = maskInlineLinksAndUrls(escaped.masked);
+  const colored = maskColorSpans(escaped.masked);
+  const linked = maskInlineLinksAndUrls(colored.masked);
 
   let html = formatInlineEmphasis(escapeHtml(linked.masked));
 
@@ -7117,6 +7155,11 @@ function inlineMarkup(text) {
       .split(`\uE300${index}\uE301`)
       .join(value);
   });
+
+  colored.colors.forEach((color, index) => {
+    html = html.split(`\uE400${index}\uE401`).join(`<span class="ms-color" style="color:${color}">`);
+  });
+  html = html.split('\uE402').join('</span>');
 
   html = restoreEscapes(html, escaped.tokens);
 
@@ -7528,9 +7571,8 @@ function buildNavbar(slide, doc = document) {
 }
 /* Mark inline patterns that a theme may style (Singapore does): a bold run holding only an internal
    link (**[Label](#id)**) is a button, and with italics too (***[Label](#id)***) a right-aligned
-   one; an italic run made only of links and separators is a citation line; a bold run holding only an
-   italic run (***text***) is ms-strong-em. Classes are used rather than CSS :has()/:only-child
-   because CSS cannot see the text nodes beside an element. */
+   one; an italic run made only of links and separators is a citation line. Classes are used rather
+   than CSS :has()/:only-child because CSS cannot see the text nodes beside an element. */
 function markInlineRoles(root) {
   const soleChild = element => {
     const nodes = [...element.childNodes].filter(node => node.nodeType !== 3 || node.textContent.trim());
@@ -7542,7 +7584,7 @@ function markInlineRoles(root) {
     if (child.matches('a.ms-link-internal')) strong.classList.add('ms-button');
     else if (child.matches('em')) {
       const inner = soleChild(child);
-      strong.classList.add(...(inner?.matches('a.ms-link-internal') ? ['ms-button', 'ms-button-right'] : ['ms-strong-em']));
+      if (inner?.matches('a.ms-link-internal')) strong.classList.add('ms-button', 'ms-button-right');
     }
   });
   root.querySelectorAll('em').forEach(em => {
@@ -8674,14 +8716,89 @@ async function disconnectDiskDeck() {
   await saveToDisk();
   if (state.diskDeck === disk) state.diskDeck = null;
 }
-function fallbackDownloadDeck(text) {
+function downloadText(text, name) {
   const blob = new Blob([text], {type:'application/json'});
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  const title = slugify(state.deck.meta.title, 'presentation');
-  link.download = state.filename?.endsWith('.json') ? state.filename : `${title}.json`;
+  link.download = name;
   document.body.appendChild(link); link.click();
   window.setTimeout(() => { URL.revokeObjectURL(link.href); link.remove(); }, 0);
+}
+function fallbackDownloadDeck(text) {
+  const title = slugify(state.deck.meta.title, 'presentation');
+  downloadText(text, state.filename?.endsWith('.json') ? state.filename : `${title}.json`);
+}
+/* Portable copy: the browser counterpart of tools/pack-deck.mjs. Every image the deck loads from this
+   site (deck-relative or root-relative) is fetched and embedded in the copy's assets, and the copy is
+   downloaded as <deck>.portable.json; the open deck is not changed. Images on other sites stay links
+   (and are named). A deck opened from a file cannot reach images relative to that file, so those are
+   reported as missing and nothing is downloaded, as the packer refuses a missing local file. */
+const blobToDataUrl = blob => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = () => reject(reader.error);
+  reader.readAsDataURL(blob);
+});
+async function portableAssetId(bytes, data) {
+  try {
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+    return `portable-${[...digest.slice(0, 8)].map(byte => byte.toString(16).padStart(2, '0')).join('')}`;
+  } catch { return `portable-${deckHash(data)}`; }
+}
+async function downloadPortableDeck() {
+  if (state.editMode) commitEditor({record:true});
+  const deck = deepClone(state.deck);
+  deck.assets = deck.assets && typeof deck.assets === 'object' ? deck.assets : {};
+  const embedded = new Map(), remote = new Set(), missing = [];
+  let bytesTotal = 0;
+  const embed = async (rawSource, context) => {
+    const source = String(rawSource || '').trim();
+    if (!source || /^(asset:|data:)/i.test(source)) return rawSource;
+    let url;
+    try { url = new URL(resolveSource(source)); } catch { missing.push(`${context}: ${source}`); return rawSource; }
+    if (url.origin !== location.origin || !/^https?:$/.test(url.protocol)) { remote.add(source); return rawSource; }
+    if (embedded.has(url.href)) return embedded.get(url.href);
+    try {
+      const response = await fetch(url.href, {cache:'no-store'});
+      if (!response.ok) throw new Error(String(response.status));
+      const blob = await response.blob();
+      if (!/^image\//.test(blob.type)) throw new Error(`not an image (${blob.type || 'unknown type'})`);
+      const data = await blobToDataUrl(blob);
+      const base = await portableAssetId(await blob.arrayBuffer(), data);
+      let id = base, suffix = 2;
+      while (deck.assets[id] && deck.assets[id].data !== data) id = `${base}-${suffix++}`;
+      if (!deck.assets[id]) { deck.assets[id] = {name:decodeURIComponent(url.pathname.split('/').pop() || 'image'), type:blob.type, data}; bytesTotal += blob.size; }
+      embedded.set(url.href, `asset:${id}`);
+      return `asset:${id}`;
+    } catch (error) {
+      missing.push(`${context}: ${source} (${error.message})`);
+      return rawSource;
+    }
+  };
+  const walk = async (blocks, context) => {
+    for (const block of blocks || []) {
+      if (block.type === 'image') block.src = await embed(block.src, context);
+      if (block.type === 'website' && block.poster) block.poster = await embed(block.poster, `${context} poster`);
+      if (block.type === 'columns') for (const column of block.columns) await walk(column.blocks, context);
+      if (block.type === 'table') for (const row of block.rows) for (const cell of row) if (cell && typeof cell === 'object') await walk(cell.blocks, context);
+    }
+  };
+  setStatus('Packing a portable copy…', 'working');
+  if (deck.meta.logo) deck.meta.logo = await embed(deck.meta.logo, 'deck logo');
+  for (const slide of deck.slides) {
+    if (slide.background?.src) slide.background.src = await embed(slide.background.src, `slide ${slide.id} background`);
+    await walk(slide.blocks, `slide ${slide.id}`);
+  }
+  if (missing.length) {
+    setStatus(`Portable copy NOT made: ${missing.length} image${missing.length === 1 ? '' : 's'} could not be loaded`, 'error');
+    alert(`These images could not be loaded, so no portable copy was made:\n\n${missing.slice(0, 12).join('\n')}${missing.length > 12 ? `\n… and ${missing.length - 12} more` : ''}\n\nOpen the deck by its URL (?deck= or the editor server) so its images can be reached.`);
+    return false;
+  }
+  const name = `${String(state.filename || slugify(deck.meta.title, 'presentation')).replace(/\.json$/i, '').replace(/\.portable$/i, '')}.portable.json`;
+  downloadText(JSON.stringify(deck, null, 2) + '\n', name);
+  const size = (bytesTotal / 1048576).toFixed(1);
+  setStatus(`Downloaded ${name}: ${embedded.size} image${embedded.size === 1 ? '' : 's'} embedded (${size} MB)${remote.size ? ` · ${remote.size} left as web links` : ''}`, remote.size ? 'error' : 'saved');
+  return true;
 }
 async function canWriteHandle(handle) {
   if (!handle) return false;
@@ -9831,6 +9948,7 @@ function setupEvents() {
     openModal('json-modal');
   });
   $('save-deck').addEventListener('click', saveDeck);
+  $('portable-deck').addEventListener('click', downloadPortableDeck);
   $('remember-decks').addEventListener('click', () => setRememberDecks(!rememberDecks()));
   $('publish-deck').addEventListener('click', openPublishDialog);
   $('confirm-publish').addEventListener('click', publishDeck);
@@ -10076,6 +10194,7 @@ function setupEvents() {
     if (command && !event.altKey && !modal) {
       const commandKey = event.key.toLowerCase();
       if (commandKey === 's' && !event.shiftKey) { event.preventDefault(); saveDeck(); return; }
+      if (commandKey === 's' && event.shiftKey) { event.preventDefault(); downloadPortableDeck(); return; }
       if (commandKey === 'p') { event.preventDefault(); preparePrint(false); return; }
     }
     if (event.ctrlKey || event.metaKey || event.altKey) return;

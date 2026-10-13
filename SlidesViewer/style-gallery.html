@@ -507,7 +507,7 @@ button:disabled { cursor: not-allowed; opacity: .42; }
    the edge and text 1cm (4.25cqw) further in. Header: lines name navigation-bar sections (see
    buildNavbar). Inline roles marked by markInlineRoles: strong.ms-button is a grey Beamer button,
    .ms-button-right one pushed to the right margin, em.ms-cite-line a faded citation line, and
-   strong.ms-strong-em (***text***) blue text. */
+   colours come from the general [text]{color} syntax. */
 .theme-singapore {
   --base: 2.425cqw; --bg: #ffffff; --text: #000000; --accent: #1f8a1c; --accent-2: #8c8c8c; --line: #000000;
   --body-font: "Fira Sans", Helvetica, sans-serif; --display-font: "Fira Sans", Helvetica, sans-serif; --sans-font: "Fira Sans", Helvetica, sans-serif;
@@ -566,9 +566,6 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 /* \lit{}: a faded, small citation line. */
 .theme-singapore em.ms-cite-line { display: inline-block; font-style: normal; font-size: .7em; opacity: .25; }
 .theme-singapore em.ms-cite-line a { color: #000; }
-/* \blue{} */
-.theme-singapore strong.ms-strong-em { font-weight: 400; }
-.theme-singapore strong.ms-strong-em > em { font-style: normal; color: #0000ff; }
 /* Aside: a small grey note in the bottom-right corner, right-aligned to the text margin, above the
    footer. Slides with an aside reserve room for two lines of it under the body, so the two never
    overlap (a longer aside should be shortened). */
@@ -576,7 +573,6 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .theme-singapore .slide-aside { top: auto; bottom: 2cqw; right: calc(var(--slide-pad-right) + var(--text-indent)); width: auto; max-width: 45cqw; text-align: right; }
 /* Figures. */
 .theme-singapore .image-caption { color: #000; margin-top: .3em; }
-.theme-singapore .slide-column { justify-content: flex-start; }
 .theme-singapore .slide-column .block-image { flex: 0 1 auto; }
 /* Tables: booktabs-like, a double rule above and below, a single rule under the header only. */
 .theme-singapore .block-table { border-collapse: separate; border-spacing: 0; border-top: .3cqw double #000; border-bottom: .3cqw double #000; line-height: 1.2; }
@@ -5345,7 +5341,7 @@ body { font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
 @media (max-width: 900px) { .s-slides { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .s-slides { grid-template-columns: 1fr; } .s-bar-inner h1 { flex-basis: 100%; } #s-select { flex: 1; min-width: 0; } }
 </style>
-<!-- Deployed from ModernSlides 8f2b83cede6b by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 03775ca4e381 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank"};</script>
 <style id="site-styles">
@@ -7151,9 +7147,8 @@ function buildNavbar(slide, doc = document) {
 }
 /* Mark inline patterns that a theme may style (Singapore does): a bold run holding only an internal
    link (**[Label](#id)**) is a button, and with italics too (***[Label](#id)***) a right-aligned
-   one; an italic run made only of links and separators is a citation line; a bold run holding only an
-   italic run (***text***) is ms-strong-em. Classes are used rather than CSS :has()/:only-child
-   because CSS cannot see the text nodes beside an element. */
+   one; an italic run made only of links and separators is a citation line. Classes are used rather
+   than CSS :has()/:only-child because CSS cannot see the text nodes beside an element. */
 function markInlineRoles(root) {
   const soleChild = element => {
     const nodes = [...element.childNodes].filter(node => node.nodeType !== 3 || node.textContent.trim());
@@ -7165,7 +7160,7 @@ function markInlineRoles(root) {
     if (child.matches('a.ms-link-internal')) strong.classList.add('ms-button');
     else if (child.matches('em')) {
       const inner = soleChild(child);
-      strong.classList.add(...(inner?.matches('a.ms-link-internal') ? ['ms-button', 'ms-button-right'] : ['ms-strong-em']));
+      if (inner?.matches('a.ms-link-internal')) strong.classList.add('ms-button', 'ms-button-right');
     }
   });
   root.querySelectorAll('em').forEach(em => {
