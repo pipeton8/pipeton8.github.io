@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VERSION = 'modernslides-shell-b1aad02a19bf';
+const CACHE_VERSION = 'modernslides-shell-b52a2d1a1a64';
 const RUNTIME_CACHE = 'modernslides-runtime-v1';
 const APP_SHELL = [
   './index.html',
