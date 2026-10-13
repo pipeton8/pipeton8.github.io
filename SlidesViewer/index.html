@@ -67,6 +67,15 @@ window.MathJax = {
   --ui-working: #735c00;
   --ui-error-bg: #fff3f3;
   --ui-error-line: #d6aaaa;
+  --hl-directive: #0550ae;   /* syntax colours in the slide text */
+  --hl-args: #57606a;
+  --hl-block: #a40e26;
+  --hl-list: #953800;
+  --hl-math: #116329;
+  --hl-link: #0969da;
+  --hl-emph: #8250df;
+  --hl-code: #57606a;
+  --hl-punct: #6e7781;
   --ui-font: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --ui-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
@@ -105,6 +114,15 @@ window.MathJax = {
   --ui-working: #e3b341;
   --ui-error-bg: #3a1f1f;
   --ui-error-line: #7a3b3b;
+  --hl-directive: #6cb6ff;
+  --hl-args: #9ba3ad;
+  --hl-block: #f47067;
+  --hl-list: #f69d50;
+  --hl-math: #8ddb8c;
+  --hl-link: #6cb6ff;
+  --hl-emph: #dcbdfb;
+  --hl-code: #adbac7;
+  --hl-punct: #9ba3ad;
 }
 /* Slate: the palette of pipeton8.github.io, where the hosted viewer lives. */
 :root[data-editor-theme="slate"] {
@@ -137,6 +155,15 @@ window.MathJax = {
   --ui-on-accent: #fff;
   --ui-primary: #334257;
   --ui-on-primary: #fff;
+  --hl-directive: #2c5a80;
+  --hl-args: #5f6b76;
+  --hl-block: #9a3a3a;
+  --hl-list: #8a5200;
+  --hl-math: #2d6a46;
+  --hl-link: #2f6d8a;
+  --hl-emph: #6a4a9a;
+  --hl-code: #5f6b76;
+  --hl-punct: #6b7680;
 }
 
 * { box-sizing: border-box; }
@@ -4900,7 +4927,7 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   position: fixed;
   inset: 0;
   display: none;
-  grid-template-columns: 240px minmax(0,1fr);
+  grid-template-columns: var(--rail-width, 240px) 7px minmax(0,1fr);
   background: var(--ui-bg);
   color: var(--ui-text);
   z-index: 50;
@@ -4909,13 +4936,28 @@ body.edit-mode #editor-view { display: grid; }
 body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
 
 #thumb-rail {
+  grid-column: 1;
   min-width: 0;
   overflow: auto;
-  padding: 1rem 1rem 2rem;
+  padding: 16px 16px 32px;
   border-right: 1px solid var(--ui-line);
   background: var(--ui-rail);
   scrollbar-gutter: stable;
 }
+/* The thumbnails column is resizable (setupRailResizer); thumbnails scale with it, so a wide column
+   is a large preview. --thumb-w and --thumb-scale are set from the column's width. */
+html[data-rail="hidden"] #thumb-rail { display: none; }
+#rail-resizer {
+  grid-column: 2;
+  position: relative;
+  cursor: col-resize;
+  background: var(--ui-rail);
+  border-right: 1px solid var(--ui-line);
+  touch-action: none;
+}
+#rail-resizer::after { content: ""; position: absolute; top: 50%; left: 2px; width: 2px; height: 2.4rem; margin-top: -1.2rem; border-radius: 2px; background: var(--ui-line-strong); }
+#rail-resizer:hover, #rail-resizer:focus-visible, #rail-resizer.dragging { background: var(--ui-highlight); outline: 0; }
+#editor-main { grid-column: 3; }
 #thumb-list {
   display: flex;
   flex-direction: column;
@@ -4924,7 +4966,7 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
 }
 .thumb {
   position: relative;
-  width: 192px;
+  width: var(--thumb-w, 192px);
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -4946,8 +4988,8 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
 }
 .thumb-canvas {
   position: relative;
-  width: 192px;
-  height: 108px;
+  width: var(--thumb-w, 192px);
+  height: var(--thumb-h, 108px);
   overflow: hidden;
   border: 1px solid var(--ui-line-strong);
   border-radius: 0;
@@ -4958,7 +5000,7 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   outline: 3px solid var(--ui-selected);
   outline-offset: 2px;
 }
-.thumb-canvas .slide-frame { transform: scale(.12); pointer-events: none; }
+.thumb-canvas .slide-frame { transform: scale(var(--thumb-scale, .12)); pointer-events: none; }
 .thumb-canvas .slide-frame .slide-navbar { pointer-events: none; }
 .thumb-number {
   position: absolute;
@@ -5036,6 +5078,10 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0,1fr) auto minmax(7rem,.27fr);
+}
+html[data-notes="hidden"] #author-pane { grid-template-rows: auto minmax(0,1fr) auto; }
+html[data-notes="hidden"] #notes-pane { display: none; }
+#author-pane {
   border: 0;
   border-radius: 0;
   background: var(--ui-editor);
@@ -5061,22 +5107,48 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   text-transform: none;
   user-select: all;
 }
-#body-editor {
+/* Syntax colours: the text box is transparent over #body-highlight, a copy of its text with colours
+   (highlightSlideText). Both must lay text out identically, so they share every metric here. */
+#body-editor-wrap { position: relative; min-width: 0; min-height: 0; background: var(--ui-editor); }
+#body-editor, #body-highlight {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  min-height: 0;
-  resize: none;
+  margin: 0;
   border: 0;
   border-radius: 0;
-  outline: 0;
   padding: 1rem 1.1rem;
-  background: var(--ui-editor);
-  color: var(--ui-text);
-  caret-color: var(--ui-text);
-  font: 18px/1.62 var(--ui-mono);
+  font: var(--editor-font-size, 18px)/1.62 var(--ui-mono);
+  letter-spacing: normal;
   tab-size: 2;
   white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
+#body-highlight { overflow: hidden; color: var(--ui-text); pointer-events: none; }
+#body-editor {
+  min-height: 0;
+  resize: none;
+  outline: 0;
+  background: transparent;
+  color: var(--ui-text);
+  caret-color: var(--ui-text);
+}
+html[data-highlight="on"] #body-editor { color: transparent; }
+html[data-highlight="on"] #body-editor::placeholder { color: var(--ui-muted); }
+html[data-highlight="off"] #body-highlight { visibility: hidden; }
+#body-highlight .hl-directive { color: var(--hl-directive); }
+#body-highlight .hl-args { color: var(--hl-args); }
+#body-highlight .hl-block { color: var(--hl-block); }
+#body-highlight .hl-list { color: var(--hl-list); }
+#body-highlight .hl-math { color: var(--hl-math); }
+#body-highlight .hl-link { color: var(--hl-link); }
+#body-highlight .hl-emph { color: var(--hl-emph); }
+#body-highlight .hl-code { color: var(--hl-code); }
+#body-highlight .hl-punct { color: var(--hl-punct); }
 #format-bar {
   display: flex;
   align-items: center;
@@ -5148,7 +5220,7 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
   background: var(--ui-editor);
   color: var(--ui-text);
   caret-color: var(--ui-text);
-  font: 15px/1.5 var(--ui-font);
+  font: calc(var(--editor-font-size, 18px) * .84)/1.5 var(--ui-font);
 }
 
 #toolbar {
@@ -5195,7 +5267,60 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
 .toolbar-spacer { flex: 1 0 1.5rem; }
 .toolbar-group { display: inline-flex; flex: 0 0 auto; gap: .25rem; padding-right: .35rem; margin-right: .05rem; border-right: 1px solid var(--ui-line); }
 #theme-select { min-width: 10rem; }
-#editor-theme-select { min-width: 6.5rem; }
+#toolbar .menu-button { width: auto; padding: 0 .45rem; display: inline-flex; align-items: center; gap: .3rem; }
+#toolbar .menu-button .caret { font-size: .7em; opacity: .7; }
+#toolbar .menu-button[aria-expanded="true"] { border-color: var(--ui-hover-line); background: var(--ui-subtle); }
+#format-bar .notes-toggle { margin-left: auto; display: inline-flex; align-items: center; gap: .35rem; font-size: .82rem; }
+#format-bar .notes-toggle[aria-pressed="false"] { color: var(--ui-muted); }
+#format-bar .notes-toggle + .layout-control { margin-left: .6rem; }
+
+/* Toolbar menus: fixed panels opened above their button (setupMenus). */
+.menu {
+  position: fixed;
+  z-index: 250;
+  min-width: 15rem;
+  max-width: min(24rem, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow: auto;
+  padding: .35rem;
+  border: 1px solid var(--ui-line);
+  border-radius: .5rem;
+  background: var(--ui-card);
+  color: var(--ui-text);
+  box-shadow: 0 .8rem 2.2rem rgba(0,0,0,.28);
+  font: .86rem/1.3 var(--ui-font);
+}
+.menu[hidden] { display: none; }
+.menu hr { margin: .3rem .2rem; border: 0; border-top: 1px solid var(--ui-line); }
+.menu-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.4rem minmax(0,1fr) auto;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem .55rem;
+  border: 0;
+  border-radius: .3rem;
+  background: transparent;
+  color: var(--ui-text);
+  text-align: left;
+}
+.menu-item:hover:not(:disabled), .menu-item:focus-visible { background: var(--ui-subtle); outline: 0; }
+.menu-item:disabled { opacity: .45; cursor: default; }
+.menu-item[hidden] { display: none; }
+.menu-item > i { color: var(--ui-muted); text-align: center; }
+.menu-item kbd { color: var(--ui-muted); font: .74rem/1 var(--ui-font); }
+.menu-item[aria-pressed]::after { content: "\2713"; grid-column: 3; color: var(--ui-success); font-weight: 700; visibility: hidden; }
+.menu-item[aria-pressed="true"]::after { visibility: visible; }
+.menu-settings { padding: .6rem .75rem; min-width: 18rem; }
+.menu-note { margin: 0 0 .55rem; color: var(--ui-muted); font-size: .78rem; }
+.menu-field { display: grid; grid-template-columns: 7.5rem minmax(0,1fr) 3rem; align-items: center; gap: .5rem; margin: .45rem 0; }
+.menu-field select { grid-column: 2 / 4; padding: .3rem .4rem; border: 1px solid var(--ui-line-strong); border-radius: .25rem; background: var(--ui-surface); color: var(--ui-text); }
+.menu-field input[type="range"] { width: 100%; accent-color: var(--ui-highlight); }
+.menu-field output { color: var(--ui-muted); font: .78rem/1 var(--ui-mono); text-align: right; }
+.menu-check { display: flex; align-items: center; gap: .5rem; margin: .45rem 0; }
+.menu-check input { accent-color: var(--ui-highlight); }
+.menu-settings .menu-item { margin-top: .4rem; border-top: 1px solid var(--ui-line); border-radius: 0; padding-top: .55rem; }
 
 #statusbar {
   display: flex;
@@ -5218,8 +5343,6 @@ body.edit-mode #presentation-view { visibility: hidden; pointer-events: none; }
 
 
 @media (max-width: 720px) {
-  #editor-view { grid-template-columns: 1fr; }
-  #thumb-rail { display: none; }
   #toolbar { padding-bottom: .7rem; }
 }
 
@@ -5411,19 +5534,62 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 6c502fc21a85 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides a6c47aba834c by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
-/* Editor theme, applied before the first paint so the page never flashes the wrong colours: the
-   viewer's own choice (this browser), else the site's default, else auto. See applyEditorTheme. */
-(() => {
-  const themes = ['auto', 'light', 'dark', 'slate'];
-  let choice = null;
-  try { choice = localStorage.getItem('modernslides.editorTheme'); } catch {}
-  if (!themes.includes(choice)) choice = themes.includes(window.MODERNSLIDES_SITE?.editorTheme) ? window.MODERNSLIDES_SITE.editorTheme : 'auto';
-  const dark = !!window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-  document.documentElement.dataset.editorTheme = choice === 'auto' ? (dark ? 'dark' : 'light') : choice;
+/* Editor preferences (theme, text and interface size, notes, thumbnails column, syntax colours), kept
+   in this browser and applied before the first paint so the page never jumps or flashes. The app
+   script reuses these functions through window.ModernSlidesEditor. */
+window.ModernSlidesEditor = (() => {
+  const root = document.documentElement;
+  const THEMES = ['auto', 'light', 'dark', 'slate'];
+  const KEY_THEME = 'modernslides.editorTheme', KEY_PREFS = 'modernslides.editorPrefs';
+  const DEFAULTS = {textSize: 18, uiScale: 100, notes: true, rail: true, railWidth: 240, highlight: true};
+  const clamp = (value, low, high, fallback) => Number.isFinite(Number(value)) ? Math.min(high, Math.max(low, Number(value))) : fallback;
+  const store = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
+  const load = key => { try { return localStorage.getItem(key); } catch { return null; } };
+  const systemDark = () => !!window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+  function themeChoice() {
+    const choice = load(KEY_THEME);
+    if (THEMES.includes(choice)) return choice;
+    const site = window.MODERNSLIDES_SITE?.editorTheme;
+    return THEMES.includes(site) ? site : 'auto';
+  }
+  function applyTheme(choice = themeChoice()) { root.dataset.editorTheme = choice === 'auto' ? (systemDark() ? 'dark' : 'light') : choice; }
+  function readPrefs() {
+    let saved = {};
+    try { saved = JSON.parse(load(KEY_PREFS) || '{}') || {}; } catch {}
+    return {
+      textSize: clamp(saved.textSize, 12, 28, DEFAULTS.textSize),
+      uiScale: clamp(saved.uiScale, 75, 125, DEFAULTS.uiScale),
+      notes: saved.notes !== false,
+      rail: typeof saved.rail === 'boolean' ? saved.rail : window.innerWidth > 720,
+      railWidth: clamp(saved.railWidth, 120, 1400, DEFAULTS.railWidth),
+      highlight: saved.highlight !== false
+    };
+  }
+  function savePrefs(prefs) { store(KEY_PREFS, JSON.stringify(prefs)); }
+  /* Thumbnails fill the column: 48px of padding and scrollbar beside them, 16:9, scaled from 1600px. */
+  function applyRail(shown, width) {
+    root.dataset.rail = shown ? 'shown' : 'hidden';
+    const columnWidth = shown ? Math.round(width) : 0;
+    const thumbWidth = Math.max(72, columnWidth - 48);
+    root.style.setProperty('--rail-width', `${columnWidth}px`);
+    root.style.setProperty('--thumb-w', `${thumbWidth}px`);
+    root.style.setProperty('--thumb-h', `${Math.round(thumbWidth * 9 / 16)}px`);
+    root.style.setProperty('--thumb-scale', String(thumbWidth / 1600));
+  }
+  function applyPrefs(prefs = readPrefs()) {
+    root.style.fontSize = `${prefs.uiScale}%`;
+    root.style.setProperty('--editor-font-size', `${prefs.textSize}px`);
+    root.dataset.notes = prefs.notes ? 'shown' : 'hidden';
+    root.dataset.highlight = prefs.highlight ? 'on' : 'off';
+    applyRail(prefs.rail, prefs.railWidth);
+  }
+  applyTheme();
+  applyPrefs();
+  return {THEMES, KEY_THEME, DEFAULTS, themeChoice, applyTheme, readPrefs, savePrefs, applyPrefs, applyRail, store, systemDark};
 })();
 </script>
 </head>
@@ -5443,11 +5609,15 @@ body.dragging-file #drop-overlay { display:grid; }
 
 <div id="editor-view" aria-label="Slide editor">
   <aside id="thumb-rail"><div id="thumb-list"></div></aside>
+  <div id="rail-resizer" role="separator" aria-orientation="vertical" aria-label="Resize the slide thumbnails (drag; double-click resets)" tabindex="0" title="Drag to resize the thumbnails; double-click to reset"></div>
   <main id="editor-main">
     <div id="workspace">
       <section id="author-pane">
         <div id="editor-slide-bar"><span>Slide ID</span><code id="editor-slide-id"></code></div>
-        <textarea id="body-editor" spellcheck="true" aria-label="Slide body syntax" placeholder="Title: New slide&#10;&#10;Text: Write here."></textarea>
+        <div id="body-editor-wrap">
+          <pre id="body-highlight" aria-hidden="true"></pre>
+          <textarea id="body-editor" spellcheck="true" aria-label="Slide body syntax" placeholder="Title: New slide&#10;&#10;Text: Write here."></textarea>
+        </div>
         <div id="format-bar" role="toolbar" aria-label="Text formatting">
           <button type="button" data-format="bold" title="Bold" aria-label="Bold"><strong>B</strong></button>
           <button type="button" data-format="italic" title="Italic" aria-label="Italic"><em>I</em></button>
@@ -5455,6 +5625,7 @@ body.dragging-file #drop-overlay { display:grid; }
           <button type="button" data-format="left" title="Align left" aria-label="Align left"><i class="fa-solid fa-align-left"></i></button>
           <button type="button" data-format="center" title="Align center" aria-label="Align center"><i class="fa-solid fa-align-center"></i></button>
           <button type="button" data-format="right" title="Align right" aria-label="Align right"><i class="fa-solid fa-align-right"></i></button>
+          <button id="toggle-notes" type="button" class="notes-toggle" title="Show or hide speaker notes and print annotations" aria-pressed="true"><i class="fa-regular fa-note-sticky"></i> Notes</button>
           <label class="layout-control" for="slide-layout">
             <span>Layout</span>
             <select id="slide-layout" title="Slide layout" aria-label="Slide layout">
@@ -5484,31 +5655,20 @@ body.dragging-file #drop-overlay { display:grid; }
         <button id="delete-slide" class="danger" type="button" title="Delete slide" aria-label="Delete slide"><i class="fa-solid fa-minus"></i></button>
         <button id="duplicate-slide" type="button" title="Duplicate slide" aria-label="Duplicate slide"><i class="fa-regular fa-copy"></i></button>
         <button id="toggle-hidden" type="button" title="Hide slide" aria-label="Hide or show slide"><i class="fa-regular fa-eye-slash"></i></button>
-        <button id="toggle-page-numbers" type="button" title="Toggle slide numbers" aria-label="Toggle slide numbers"><i class="fa-solid fa-arrow-down-1-9"></i></button>
       </span>
-      <label class="sr-only" for="theme-select">Theme</label>
-      <select id="theme-select" title="Theme" aria-label="Theme"></select>
-      <select id="editor-theme-select" title="Editor colours (kept in this browser)" aria-label="Editor theme"></select>
       <span class="toolbar-group">
         <button id="undo" type="button" title="Undo" aria-label="Undo" disabled><i class="fa-solid fa-rotate-left"></i></button>
         <button id="redo" type="button" title="Redo" aria-label="Redo" disabled><i class="fa-solid fa-rotate-right"></i></button>
-        <button id="deck-settings" type="button" title="Deck settings" aria-label="Deck settings"><i class="fa-solid fa-gear"></i></button>
       </span>
+      <label class="sr-only" for="theme-select">Theme</label>
+      <select id="theme-select" title="Slide theme" aria-label="Slide theme"></select>
       <span class="toolbar-spacer"></span>
+      <button id="save-deck" type="button" title="Save deck (Cmd/Ctrl+S)" aria-label="Save deck"><i class="fa-solid fa-floppy-disk"></i></button>
+      <button id="deck-menu-button" class="menu-button" type="button" data-menu="deck-menu" aria-haspopup="menu" aria-expanded="false" title="Deck: new, open, restore, export, settings" aria-label="Deck menu"><i class="fa-solid fa-folder"></i><i class="fa-solid fa-caret-down caret"></i></button>
+      <button id="print-menu-button" class="menu-button" type="button" data-menu="print-menu" aria-haspopup="menu" aria-expanded="false" title="Print" aria-label="Print menu"><i class="fa-solid fa-print"></i><i class="fa-solid fa-caret-down caret"></i></button>
+      <button id="view-menu-button" class="menu-button" type="button" data-menu="view-menu" aria-haspopup="dialog" aria-expanded="false" title="Editor settings: colours, text size, layout" aria-label="Editor settings"><i class="fa-solid fa-sliders"></i><i class="fa-solid fa-caret-down caret"></i></button>
       <button id="help-button" type="button" title="Help" aria-label="Help"><i class="fa-solid fa-question"></i></button>
-      <button id="new-deck" type="button" title="New deck" aria-label="New deck"><i class="fa-solid fa-file-circle-plus"></i></button>
-      <button id="load-deck" type="button" title="Load JSON or old text deck" aria-label="Load deck"><i class="fa-solid fa-folder-open"></i></button>
-      <button id="restore-deck" type="button" title="Restore previous deck" aria-label="Restore previous deck" disabled><i class="fa-solid fa-clock-rotate-left"></i></button>
-      <button id="manage-assets" type="button" title="Manage pasted images" aria-label="Manage images"><i class="fa-solid fa-images"></i></button>
-      <button id="view-json" type="button" title="View canonical JSON" aria-label="View JSON"><i class="fa-solid fa-code"></i></button>
-      <button id="save-deck" type="button" title="Save deck" aria-label="Save deck"><i class="fa-solid fa-floppy-disk"></i></button>
-      <button id="portable-deck" type="button" title="Download a portable copy with every image inside (Cmd/Ctrl+Shift+S)" aria-label="Download portable copy"><i class="fa-solid fa-suitcase"></i></button>
-      <button id="remember-decks" type="button" title="Remember decks on this device" aria-label="Remember decks on this device" aria-pressed="false" hidden><i class="fa-solid fa-hard-drive"></i></button>
-      <button id="publish-deck" type="button" title="Publish deck" aria-label="Publish deck"><i class="fa-solid fa-cloud-arrow-up"></i></button>
       <button id="speaker-button" type="button" title="Speaker view (S; Cmd/Ctrl+Shift+Enter presents with it)" aria-label="Speaker view"><i class="fa-solid fa-person-chalkboard"></i></button>
-      <button id="print-deck" type="button" title="Print slides (P)" aria-label="Print slides"><i class="fa-solid fa-print"></i></button>
-      <button id="print-progressive" type="button" title="Print every reveal step (Shift+P)" aria-label="Print every reveal step"><i class="fa-solid fa-layer-group"></i></button>
-      <button id="print-notes" type="button" title="Print slides with notes (N)" aria-label="Print slides with notes"><i class="fa-regular fa-note-sticky"></i></button>
       <button id="present-button" class="primary" type="button" title="Presentation view (E or Cmd/Ctrl+Enter)" aria-label="Presentation view"><i class="fa-solid fa-bullhorn"></i></button>
     </div>
 
@@ -5519,6 +5679,37 @@ body.dragging-file #drop-overlay { display:grid; }
       <span id="save-status">Ready</span>
     </div>
   </main>
+</div>
+
+<!-- Toolbar menus (see setupMenus). They live outside the scrolling toolbar so nothing clips them. -->
+<div id="deck-menu" class="menu" role="menu" aria-label="Deck" hidden>
+  <button id="new-deck" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-file-circle-plus"></i><span>New deck</span></button>
+  <button id="load-deck" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-folder-open"></i><span>Open deck…</span><kbd>or drop a file</kbd></button>
+  <button id="restore-deck" class="menu-item" type="button" role="menuitem" disabled><i class="fa-solid fa-clock-rotate-left"></i><span>Restore an earlier deck…</span></button>
+  <hr>
+  <button id="portable-deck" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-suitcase"></i><span>Download portable copy</span><kbd>Cmd/Ctrl+Shift+S</kbd></button>
+  <button id="publish-deck" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-cloud-arrow-up"></i><span>Publish…</span></button>
+  <button id="remember-decks" class="menu-item" type="button" role="menuitemcheckbox" aria-pressed="false" hidden><i class="fa-solid fa-hard-drive"></i><span>Remember decks on this device</span></button>
+  <hr>
+  <button id="deck-settings" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-gear"></i><span>Deck settings…</span><kbd>title, author, footer</kbd></button>
+  <button id="toggle-page-numbers" class="menu-item" type="button" role="menuitemcheckbox" aria-pressed="true"><i class="fa-solid fa-arrow-down-1-9"></i><span>Slide numbers</span></button>
+  <button id="manage-assets" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-images"></i><span>Images in this deck…</span></button>
+  <button id="view-json" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-code"></i><span>View JSON…</span></button>
+</div>
+<div id="print-menu" class="menu" role="menu" aria-label="Print" hidden>
+  <button id="print-deck" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-print"></i><span>Print slides</span><kbd>P</kbd></button>
+  <button id="print-progressive" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-layer-group"></i><span>Every reveal step</span><kbd>Shift+P</kbd></button>
+  <button id="print-notes" class="menu-item" type="button" role="menuitem"><i class="fa-regular fa-note-sticky"></i><span>With print annotations</span><kbd>N</kbd></button>
+</div>
+<div id="view-menu" class="menu menu-settings" role="dialog" aria-label="Editor settings" hidden>
+  <p class="menu-note">Kept in this browser; slides are not affected.</p>
+  <label class="menu-field"><span>Colours</span><select id="editor-theme-select" aria-label="Editor theme"></select></label>
+  <label class="menu-field"><span>Text size</span><input id="editor-text-size" type="range" min="12" max="28" step="1"><output id="editor-text-size-value"></output></label>
+  <label class="menu-field"><span>Interface size</span><input id="editor-ui-scale" type="range" min="75" max="125" step="5"><output id="editor-ui-scale-value"></output></label>
+  <label class="menu-check"><input id="editor-show-notes" type="checkbox"><span>Speaker notes and print annotations</span></label>
+  <label class="menu-check"><input id="editor-show-rail" type="checkbox"><span>Slide thumbnails</span></label>
+  <label class="menu-check"><input id="editor-highlight" type="checkbox"><span>Syntax colours</span></label>
+  <button id="editor-settings-reset" class="menu-item" type="button"><i class="fa-solid fa-rotate"></i><span>Reset editor settings</span></button>
 </div>
 
 <div id="publish-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="publish-title">
@@ -8055,7 +8246,7 @@ function updateToolbarState() {
   const slide = currentSlide();
   $('delete-slide').disabled = state.deck.slides.length <= 1;
   $('theme-select').value = state.deck.meta.theme;
-  $('toggle-page-numbers').style.opacity = state.deck.meta.pageNumbers ? '1' : '.38';
+  $('toggle-page-numbers').setAttribute('aria-pressed', String(!!state.deck.meta.pageNumbers));
   $('toggle-hidden').innerHTML = slide?.hidden ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
   updateHistoryButtons();
 }
@@ -10273,6 +10464,7 @@ function setupEvents() {
     const modal = document.querySelector('.modal.open');
     const inEditorField = event.target instanceof Element && event.target.closest('textarea,input,select');
     if (event.key === 'Escape') {
+      if (anyMenuOpen()) { closeMenus(); event.preventDefault(); return; }
       if (modal) { closeModal(modal.id); event.preventDefault(); return; }
       if (document.fullscreenElement) { document.exitFullscreen?.(); event.preventDefault(); return; }
       if (state.editMode) { toggleEdit(false); event.preventDefault(); }
@@ -10329,18 +10521,14 @@ function populateThemes() {
     option.value = id; option.textContent = label; select.appendChild(option);
   });
 }
-/* Editor themes colour the editor around the slides, never the slides. The choice is a per-browser
-   preference (not deck data); auto follows the system's light or dark setting as it changes. */
-const EDITOR_THEMES = [['auto', 'Editor: Auto'], ['light', 'Editor: Light'], ['dark', 'Editor: Dark'], ['slate', 'Editor: Slate']];
-const STORAGE_EDITOR_THEME = 'modernslides.editorTheme';
-const systemDark = window.matchMedia?.('(prefers-color-scheme: dark)');
-function editorThemeChoice() {
-  let choice = null;
-  try { choice = localStorage.getItem(STORAGE_EDITOR_THEME); } catch {}
-  return EDITOR_THEMES.some(([id]) => id === choice) ? choice : SITE.editorTheme;
-}
+/* Editor themes and preferences colour and lay out the editor around the slides, never the slides.
+   They are per-browser preferences (not deck data), applied early by window.ModernSlidesEditor;
+   auto follows the system's light or dark setting as it changes. */
+const EDITOR_THEMES = [['auto', 'Auto (follow the system)'], ['light', 'Light'], ['dark', 'Dark'], ['slate', 'Slate']];
+const editorPrefs = window.ModernSlidesEditor;
+function editorThemeChoice() { return editorPrefs.themeChoice(); }
 function applyEditorTheme(choice = editorThemeChoice()) {
-  document.documentElement.dataset.editorTheme = choice === 'auto' ? (systemDark?.matches ? 'dark' : 'light') : choice;
+  editorPrefs.applyTheme(choice);
   $('editor-theme-select').value = choice;
 }
 function setupEditorThemes() {
@@ -10350,17 +10538,195 @@ function setupEditorThemes() {
     option.value = id; option.textContent = label; select.appendChild(option);
   });
   select.addEventListener('change', () => {
-    try { localStorage.setItem(STORAGE_EDITOR_THEME, select.value); } catch {}
+    editorPrefs.store(editorPrefs.KEY_THEME, select.value);
     applyEditorTheme(select.value);
-    select.blur();
   });
-  systemDark?.addEventListener?.('change', () => { if (editorThemeChoice() === 'auto') applyEditorTheme('auto'); });
+  window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (editorThemeChoice() === 'auto') applyEditorTheme('auto'); });
   applyEditorTheme();
+}
+function updateEditorPrefs(change) {
+  const prefs = {...editorPrefs.readPrefs(), ...change};
+  editorPrefs.savePrefs(prefs);
+  editorPrefs.applyPrefs(prefs);
+  syncEditorSettings(prefs);
+  fitFrameInSlot($('presentation-slot'));
+  scheduleHighlight();
+}
+function syncEditorSettings(prefs = editorPrefs.readPrefs()) {
+  $('editor-text-size').value = prefs.textSize;
+  $('editor-text-size-value').textContent = `${prefs.textSize}px`;
+  $('editor-ui-scale').value = prefs.uiScale;
+  $('editor-ui-scale-value').textContent = `${prefs.uiScale}%`;
+  $('editor-show-notes').checked = prefs.notes;
+  $('editor-show-rail').checked = prefs.rail;
+  $('editor-highlight').checked = prefs.highlight;
+  $('toggle-notes').setAttribute('aria-pressed', String(prefs.notes));
+}
+function setupEditorSettings() {
+  $('editor-text-size').addEventListener('input', event => updateEditorPrefs({textSize: Number(event.target.value)}));
+  $('editor-ui-scale').addEventListener('input', event => updateEditorPrefs({uiScale: Number(event.target.value)}));
+  $('editor-show-notes').addEventListener('change', event => updateEditorPrefs({notes: event.target.checked}));
+  $('editor-show-rail').addEventListener('change', event => updateEditorPrefs({rail: event.target.checked}));
+  $('editor-highlight').addEventListener('change', event => updateEditorPrefs({highlight: event.target.checked}));
+  $('toggle-notes').addEventListener('click', () => updateEditorPrefs({notes: !editorPrefs.readPrefs().notes}));
+  $('editor-settings-reset').addEventListener('click', () => {
+    editorPrefs.store(editorPrefs.KEY_THEME, '');
+    updateEditorPrefs({...editorPrefs.DEFAULTS, rail: window.innerWidth > 720});
+    applyEditorTheme();
+  });
+  syncEditorSettings();
+}
+
+/* The thumbnails column: drag the divider to resize it (the thumbnails grow with it), narrower than
+   RAIL_MIN to hide it, double-click to reset; arrow keys on the focused divider resize it too. */
+const RAIL_MIN = 120;
+function setupRailResizer() {
+  const handle = $('rail-resizer');
+  const maxWidth = () => Math.max(RAIL_MIN, Math.min(1400, window.innerWidth * .7));
+  let dragging = false, lastWidth = 0;
+  handle.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    dragging = true;
+    handle.setPointerCapture(event.pointerId);
+    handle.classList.add('dragging');
+    event.preventDefault();
+  });
+  handle.addEventListener('pointermove', event => {
+    if (!dragging) return;
+    lastWidth = Math.min(maxWidth(), Math.max(0, event.clientX - handle.parentElement.getBoundingClientRect().left));
+    editorPrefs.applyRail(lastWidth >= RAIL_MIN * .75, Math.max(RAIL_MIN, lastWidth));
+  });
+  const finish = () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    const shown = lastWidth >= RAIL_MIN * .75;
+    updateEditorPrefs(shown ? {rail: true, railWidth: Math.max(RAIL_MIN, lastWidth)} : {rail: false});
+  };
+  handle.addEventListener('pointerup', finish);
+  handle.addEventListener('pointercancel', finish);
+  handle.addEventListener('dblclick', () => updateEditorPrefs({rail: true, railWidth: editorPrefs.DEFAULTS.railWidth}));
+  handle.addEventListener('keydown', event => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight' && event.key !== 'Enter') return;
+    event.preventDefault(); event.stopPropagation();
+    const prefs = editorPrefs.readPrefs();
+    if (event.key === 'Enter') return updateEditorPrefs({rail: !prefs.rail});
+    const width = (prefs.rail ? prefs.railWidth : 0) + (event.key === 'ArrowRight' ? 32 : -32);
+    updateEditorPrefs(width < RAIL_MIN ? {rail: false} : {rail: true, railWidth: Math.min(maxWidth(), width)});
+  });
+}
+
+/* Toolbar menus: panels outside the (scrolling) toolbar, opened above their button. Choosing an item
+   closes the menu; so do Esc, a click elsewhere, and resizing the window. */
+function closeMenus() {
+  document.querySelectorAll('.menu:not([hidden])').forEach(menu => { menu.hidden = true; });
+  document.querySelectorAll('[data-menu][aria-expanded="true"]').forEach(button => button.setAttribute('aria-expanded', 'false'));
+}
+function openMenu(button) {
+  const menu = $(button.dataset.menu);
+  closeMenus();
+  menu.hidden = false;
+  button.setAttribute('aria-expanded', 'true');
+  const rect = button.getBoundingClientRect();
+  const width = menu.offsetWidth, height = menu.offsetHeight;
+  const left = Math.min(Math.max(8, rect.right - width), window.innerWidth - width - 8);
+  const top = rect.top - height - 6 >= 8 ? rect.top - height - 6 : Math.min(rect.bottom + 6, window.innerHeight - height - 8);
+  menu.style.left = `${left}px`;
+  menu.style.top = `${Math.max(8, top)}px`;
+  (menu.querySelector('select, input, .menu-item:not(:disabled):not([hidden])'))?.focus({preventScroll: true});
+}
+function setupMenus() {
+  document.querySelectorAll('[data-menu]').forEach(button => button.addEventListener('click', event => {
+    event.stopPropagation();
+    if (button.getAttribute('aria-expanded') === 'true') closeMenus(); else openMenu(button);
+  }));
+  document.querySelectorAll('.menu').forEach(menu => menu.addEventListener('click', event => {
+    if (event.target.closest('.menu-item') && !menu.classList.contains('menu-settings')) setTimeout(closeMenus, 0);
+  }));
+  document.addEventListener('pointerdown', event => { if (!event.target.closest('.menu, [data-menu]')) closeMenus(); });
+  window.addEventListener('resize', closeMenus);
+}
+const anyMenuOpen = () => !!document.querySelector('.menu:not([hidden])');
+
+/* ---------- Syntax colours in the slide text ---------- */
+const HIGHLIGHT_DIRECTIVES = new Set([...DIRECTIVES, 'speakernote', 'printnote']);
+const hlSpan = (kind, text) => text ? `<span class="hl-${kind}">${escapeHtml(text)}</span>` : '';
+/* Inline markup: math, escapes, [text]{color}, links, bold/italic, bare URLs. Colours only, never a
+   change of weight or style, so the coloured copy keeps the text box's exact layout. */
+const HIGHLIGHT_INLINE = /(\$\$[\s\S]*?\$\$|\\\([\s\S]*?\\\)|(?<!\\)\$(?!\s)(?:\\.|[^$\n])+?(?<!\\)\$)|(\\[*_|$:\\])|\[([^\[\]\n]*)\]\{([^{}\n]*)\}|(\[[^\]\n]*\]\([^)\s]*\))|(\*\*\*[^*\n]+\*\*\*|\*\*[^*\n]+\*\*|\*[^*\s][^*\n]*\*|(?<![A-Za-z0-9])_[^_\n]+_(?![A-Za-z0-9]))|(https?:\/\/[^\s<>]+)/g;
+function highlightInline(text) {
+  let out = '', last = 0;
+  for (const match of String(text).matchAll(HIGHLIGHT_INLINE)) {
+    out += escapeHtml(text.slice(last, match.index));
+    const [whole, math, escape, colorText, colorName, link, emph, url] = match;
+    if (math) out += hlSpan('math', math);
+    else if (escape) out += hlSpan('punct', escape);
+    else if (colorText != null) {
+      const color = inlineColorValue(colorName);
+      out += color ? `${hlSpan('punct', '[')}<span style="color:${color}">${escapeHtml(colorText)}</span>${hlSpan('punct', `]{${colorName}}`)}` : escapeHtml(whole);
+    }
+    else if (link) out += hlSpan('link', link);
+    else if (emph) out += hlSpan('emph', emph);
+    else if (url) out += hlSpan('link', url);
+    last = match.index + whole.length;
+  }
+  return out + escapeHtml(text.slice(last));
+}
+function highlightSlideText(text) {
+  let code = false, table = false, columns = false;
+  const lines = String(text ?? '').split('\n').map(line => {
+    if (code) {
+      if (/^\s*End\s*$/.test(line)) { code = false; return hlSpan('block', line); }
+      return hlSpan('code', line);
+    }
+    if (/^\s*End\s*$/.test(line)) { if (table) table = false; else columns = false; return hlSpan('block', line); }
+    if (columns && /^\s*---\s*$/.test(line)) return hlSpan('block', line);
+    if (/^\s*\[(?:End\s+)?Step\s+\d+\]\s*$/i.test(line)) return hlSpan('block', line);
+    const directive = line.match(/^(\s*)([A-Za-z]+)(\([^)\n]*\))?(\s*:)(.*)$/);
+    if (directive && HIGHLIGHT_DIRECTIVES.has(directive[2].toLowerCase())) {
+      const [, indent, name, args = '', colon, rest] = directive;
+      const kind = name.toLowerCase();
+      if (kind === 'code') code = true;
+      if (kind === 'table') table = true;
+      if (kind === 'columns') columns = true;
+      return escapeHtml(indent) + hlSpan('directive', name) + hlSpan('args', args) + hlSpan('directive', colon) + (kind === 'code' ? hlSpan('code', rest) : highlightInline(rest));
+    }
+    if (table) return line.split(/(?<!\\)\|/).map(highlightInline).join(hlSpan('punct', '|'));
+    const item = line.match(/^(\s*)([-*+]|\d{1,3}\.|•|\d{1,2}\)|\((?:[ivx]+|[a-z])\))(\s+)(\[step=[^\]\n]*\]\s*)?(.*)$/i);
+    if (item) return escapeHtml(item[1]) + hlSpan('list', item[2]) + escapeHtml(item[3]) + hlSpan('args', item[4] || '') + highlightInline(item[5]);
+    return highlightInline(line);
+  });
+  /* A trailing newline needs something after it to get a line box of its own, as in the text box. */
+  return lines.join('\n') + (String(text ?? '').endsWith('\n') ? ' ' : '');
+}
+let highlightFrame = 0;
+function scheduleHighlight() {
+  cancelAnimationFrame(highlightFrame);
+  highlightFrame = requestAnimationFrame(() => {
+    const editor = $('body-editor'), layer = $('body-highlight');
+    layer.innerHTML = document.documentElement.dataset.highlight === 'on' ? highlightSlideText(editor.value) : '';
+    layer.scrollTop = editor.scrollTop;
+  });
+}
+function setupHighlight() {
+  const editor = $('body-editor'), layer = $('body-highlight');
+  /* The app also sets the text from code (switching slides, formatting buttons, undo); route those
+     assignments through here so the coloured copy always follows. */
+  const native = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+  Object.defineProperty(editor, 'value', {configurable: true, get() { return native.get.call(this); }, set(text) { native.set.call(this, text); scheduleHighlight(); }});
+  editor.addEventListener('input', scheduleHighlight);
+  editor.addEventListener('scroll', () => { layer.scrollTop = editor.scrollTop; layer.scrollLeft = editor.scrollLeft; });
+  new ResizeObserver(scheduleHighlight).observe(editor);
+  scheduleHighlight();
 }
 
 async function initialize() {
   populateThemes();
   setupEditorThemes();
+  setupEditorSettings();
+  setupRailResizer();
+  setupMenus();
+  setupHighlight();
   setupEvents();
   registerOfflineSupport();
   $('publish-deck').hidden = !SITE.publish;
