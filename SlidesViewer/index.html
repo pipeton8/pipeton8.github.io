@@ -5101,12 +5101,21 @@ html[data-notes="hidden"] #notes-pane { display: none; }
   text-transform: uppercase;
 }
 #editor-slide-id {
+  width: 24ch;
+  field-sizing: content;
+  min-width: 8ch;
+  max-width: 40ch;
+  padding: .15rem .3rem;
+  border: 1px solid transparent;
+  border-radius: .2rem;
+  background: transparent;
   color: var(--ui-bar-strong);
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
-  user-select: all;
 }
+#editor-slide-id:hover { border-color: var(--ui-bar-line); border-style: dashed; }
+#editor-slide-id:focus { border-color: var(--ui-focus); border-style: solid; background: var(--ui-editor); color: var(--ui-text); outline: 0; }
 /* Syntax colours: the text box is transparent over #body-highlight, a copy of its text with colours
    (highlightSlideText). Both must lay text out identically, so they share every metric here. */
 #body-editor-wrap { position: relative; min-width: 0; min-height: 0; background: var(--ui-editor); }
@@ -5119,7 +5128,7 @@ html[data-notes="hidden"] #notes-pane { display: none; }
   border: 0;
   border-radius: 0;
   padding: 1rem 1.1rem;
-  font: var(--editor-font-size, 18px)/1.62 var(--ui-mono);
+  font: var(--editor-font-size, 12px)/1.62 var(--ui-mono);
   letter-spacing: normal;
   tab-size: 2;
   white-space: pre-wrap;
@@ -5149,6 +5158,7 @@ html[data-highlight="off"] #body-highlight { visibility: hidden; }
 #body-highlight .hl-emph { color: var(--hl-emph); }
 #body-highlight .hl-code { color: var(--hl-code); }
 #body-highlight .hl-punct { color: var(--hl-punct); }
+#body-highlight .hl-swatch { text-decoration-line: underline; text-decoration-thickness: .18em; text-underline-offset: .2em; }
 #format-bar {
   display: flex;
   align-items: center;
@@ -5220,7 +5230,7 @@ html[data-highlight="off"] #body-highlight { visibility: hidden; }
   background: var(--ui-editor);
   color: var(--ui-text);
   caret-color: var(--ui-text);
-  font: calc(var(--editor-font-size, 18px) * .84)/1.5 var(--ui-font);
+  font: max(12px, calc(var(--editor-font-size, 12px) * .84))/1.5 var(--ui-font);
 }
 
 #toolbar {
@@ -5534,7 +5544,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides a6c47aba834c by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides db16665929dd by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5545,7 +5555,7 @@ window.ModernSlidesEditor = (() => {
   const root = document.documentElement;
   const THEMES = ['auto', 'light', 'dark', 'slate'];
   const KEY_THEME = 'modernslides.editorTheme', KEY_PREFS = 'modernslides.editorPrefs';
-  const DEFAULTS = {textSize: 18, uiScale: 100, notes: true, rail: true, railWidth: 240, highlight: true};
+  const DEFAULTS = {textSize: 12, uiScale: 90, notes: true, rail: true, railWidth: 240, highlight: true};
   const clamp = (value, low, high, fallback) => Number.isFinite(Number(value)) ? Math.min(high, Math.max(low, Number(value))) : fallback;
   const store = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
   const load = key => { try { return localStorage.getItem(key); } catch { return null; } };
@@ -5613,7 +5623,7 @@ window.ModernSlidesEditor = (() => {
   <main id="editor-main">
     <div id="workspace">
       <section id="author-pane">
-        <div id="editor-slide-bar"><span>Slide ID</span><code id="editor-slide-id"></code></div>
+        <div id="editor-slide-bar"><label for="editor-slide-id">Slide ID</label><input id="editor-slide-id" type="text" spellcheck="false" autocomplete="off" title="Slide ID: type a new one and press Enter to rename the slide; links to it are updated" aria-label="Slide ID"></div>
         <div id="body-editor-wrap">
           <pre id="body-highlight" aria-hidden="true"></pre>
           <textarea id="body-editor" spellcheck="true" aria-label="Slide body syntax" placeholder="Title: New slide&#10;&#10;Text: Write here."></textarea>
@@ -7457,6 +7467,55 @@ function noteMarkup(text) {
 
 /* modernslides:parser-end */
 
+/* ---------- Renaming a slide ---------- */
+/* A slide's ID names it in internal links ([text](#id)), the navigation bar and saved positions.
+   Renaming rewrites every link to it in the deck (slide text, headers, asides, notes, the footer),
+   so nothing is left pointing at the old name; one undo reverses all of it. */
+function renameSlide(oldId, requested) {
+  const field = $('editor-slide-id');
+  const newId = slugify(requested, '');
+  const refuse = message => { field.value = oldId; setStatus(message, 'error'); return false; };
+  if (!newId) return refuse('A slide ID needs at least one letter or digit');
+  if (newId === oldId) { field.value = oldId; return false; }
+  if (state.deck.slides.some(slide => slide.id === newId)) return refuse(`Not renamed: another slide is already called ${newId}`);
+  if (state.editMode) commitEditor({record:true});
+  pushUndo();
+  const target = `](#${oldId})`, replacement = `](#${newId})`;
+  let links = 0;
+  const rewrite = value => {
+    if (typeof value === 'string') {
+      const parts = value.split(target);
+      links += parts.length - 1;
+      return parts.join(replacement);
+    }
+    if (Array.isArray(value)) return value.map(rewrite);
+    if (value && typeof value === 'object') { Object.keys(value).forEach(key => { value[key] = rewrite(value[key]); }); return value; }
+    return value;
+  };
+  state.deck.slides.forEach(slide => {
+    ['header', 'aside', 'speaker', 'print'].forEach(key => { slide[key] = rewrite(slide[key]); });
+    slide.blocks = rewrite(slide.blocks);
+  });
+  state.deck.meta.footer = rewrite(state.deck.meta.footer);
+  state.deck.slides.find(slide => slide.id === oldId).id = newId;
+  if (state.currentSlideId === oldId) state.currentSlideId = newId;
+  storageSet(STORAGE_SLIDE, state.currentSlideId);
+  loadEditorsFromCurrent();
+  autosave();
+  scheduleRender('rename');
+  const message = `Renamed ${oldId} to ${newId}${links ? ` · ${links} link${links === 1 ? '' : 's'} updated` : ''}`;
+  state.autosaveChain.then(() => setStatus(message, 'saved'));
+  return true;
+}
+function setupSlideIdField() {
+  const field = $('editor-slide-id');
+  field.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && !event.metaKey && !event.ctrlKey) { event.preventDefault(); field.blur(); }
+    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); field.value = state.editorSlideId; field.blur(); }
+  });
+  field.addEventListener('blur', () => { if (field.value !== state.editorSlideId) renameSlide(state.editorSlideId, field.value); });
+}
+
 /* ---------- Editor commit ---------- */
 function commitEditor({record = true, rerender = true} = {}) {
   if (state.editorLoading || !state.deck) return false;
@@ -7499,7 +7558,7 @@ function loadEditorsFromCurrent() {
   state.editorLoading = true;
   debouncedCommit.cancel();
   state.editorSlideId = slide.id;
-  $('editor-slide-id').textContent = slide.id;
+  $('editor-slide-id').value = slide.id;
   $('slide-layout').value = slide.layout || 'auto';
   $('body-editor').value = slideToText(slide);
   $('speaker-editor').value = slide.speaker || '';
@@ -10663,7 +10722,9 @@ function highlightInline(text) {
     else if (escape) out += hlSpan('punct', escape);
     else if (colorText != null) {
       const color = inlineColorValue(colorName);
-      out += color ? `${hlSpan('punct', '[')}<span style="color:${color}">${escapeHtml(colorText)}</span>${hlSpan('punct', `]{${colorName}}`)}` : escapeHtml(whole);
+      /* The chosen colour underlines the text rather than colouring it: a dark blue on a dark editor, or
+         yellow on white, would be unreadable. An underline never changes the layout. */
+      out += color ? `${hlSpan('punct', '[')}<span class="hl-swatch" style="text-decoration-color:${color}">${escapeHtml(colorText)}</span>${hlSpan('punct', `]{${colorName}}`)}` : escapeHtml(whole);
     }
     else if (link) out += hlSpan('link', link);
     else if (emph) out += hlSpan('emph', emph);
@@ -10727,6 +10788,7 @@ async function initialize() {
   setupRailResizer();
   setupMenus();
   setupHighlight();
+  setupSlideIdField();
   setupEvents();
   registerOfflineSupport();
   $('publish-deck').hidden = !SITE.publish;
