@@ -5296,11 +5296,20 @@ html[data-highlight="off"] #body-highlight { visibility: hidden; }
 #format-bar .bar-toggles + .layout-control { margin-left: .6rem; }
 /* Live preview of the current slide, beside or below the text (refreshEditorPreview). */
 #edit-split { min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); }
-html[data-preview="side"] #edit-split { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
-html[data-preview="below"] #edit-split { grid-template-rows: minmax(0,1fr) minmax(0,1fr); }
+/* The text and preview share the space in proportions set by dragging #preview-resizer, kept per layout
+   (the --split-*-text and --split-*-preview fr values, written by applySplit). */
+html[data-preview="side"] #edit-split { grid-template-columns: minmax(0, var(--split-side-text, 1fr)) 7px minmax(0, var(--split-side-preview, 1fr)); }
+html[data-preview="below"] #edit-split { grid-template-rows: minmax(0, var(--split-below-text, 1fr)) 7px minmax(0, var(--split-below-preview, 1fr)); }
+#preview-resizer { display: none; position: relative; background: var(--ui-rail); touch-action: none; }
+html[data-preview="side"] #preview-resizer { display: block; cursor: col-resize; border-left: 1px solid var(--ui-line); }
+html[data-preview="below"] #preview-resizer { display: block; cursor: row-resize; border-top: 1px solid var(--ui-line); }
+#preview-resizer::after { content: ""; position: absolute; border-radius: 2px; background: var(--ui-line-strong); }
+html[data-preview="side"] #preview-resizer::after { top: 50%; left: 2px; width: 2px; height: 2.4rem; margin-top: -1.2rem; }
+html[data-preview="below"] #preview-resizer::after { left: 50%; top: 2px; height: 2px; width: 2.4rem; margin-left: -1.2rem; }
+#preview-resizer:hover, #preview-resizer:focus-visible, #preview-resizer.dragging { background: var(--ui-highlight); outline: 0; }
+html[data-preview="off"] #toggle-preview-layout { display: none; }
 #editor-preview { display: none; min-width: 0; min-height: 0; padding: .6rem; background: var(--ui-rail); }
-html[data-preview="side"] #editor-preview { display: block; border-left: 1px solid var(--ui-line); }
-html[data-preview="below"] #editor-preview { display: block; border-top: 1px solid var(--ui-line); }
+html[data-preview="side"] #editor-preview, html[data-preview="below"] #editor-preview { display: block; }
 #editor-preview-slot { width: 100%; height: 100%; background: transparent; }
 #editor-preview-slot .slide-frame { box-shadow: 0 .3rem 1.2rem rgba(0,0,0,.25); pointer-events: none; }
 
@@ -5564,7 +5573,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 842144ca8486 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 457aaee27910 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5575,7 +5584,7 @@ window.ModernSlidesEditor = (() => {
   const root = document.documentElement;
   const THEMES = ['auto', 'light', 'dark', 'slate'];
   const KEY_THEME = 'modernslides.editorTheme', KEY_PREFS = 'modernslides.editorPrefs';
-  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true, preview: 'off', previewLayout: 'side'};
+  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true, preview: 'off', previewLayout: 'side', splitSide: .5, splitBelow: .5};
   const clamp = (value, low, high, fallback) => Number.isFinite(Number(value)) ? Math.min(high, Math.max(low, Number(value))) : fallback;
   const store = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
   const load = key => { try { return localStorage.getItem(key); } catch { return null; } };
@@ -5598,7 +5607,9 @@ window.ModernSlidesEditor = (() => {
       railWidth: clamp(saved.railWidth, 120, 1400, DEFAULTS.railWidth),
       highlight: typeof saved.highlight === 'boolean' ? saved.highlight : DEFAULTS.highlight,
       preview: ['off', 'side', 'below'].includes(saved.preview) ? saved.preview : DEFAULTS.preview,
-      previewLayout: ['side', 'below'].includes(saved.previewLayout) ? saved.previewLayout : DEFAULTS.previewLayout
+      previewLayout: ['side', 'below'].includes(saved.previewLayout) ? saved.previewLayout : DEFAULTS.previewLayout,
+      splitSide: clamp(saved.splitSide, .15, .85, DEFAULTS.splitSide),
+      splitBelow: clamp(saved.splitBelow, .15, .85, DEFAULTS.splitBelow)
     };
   }
   function savePrefs(prefs) { store(KEY_PREFS, JSON.stringify(prefs)); }
@@ -5612,17 +5623,24 @@ window.ModernSlidesEditor = (() => {
     root.style.setProperty('--thumb-h', `${Math.round(thumbWidth * 9 / 16)}px`);
     root.style.setProperty('--thumb-scale', String(thumbWidth / 1600));
   }
+  /* The text's share of the space beside or below the live preview, as fr values (CSS cannot compute fr). */
+  function applySplit(layout, fraction) {
+    root.style.setProperty(`--split-${layout}-text`, `${Math.round(fraction * 1000)}fr`);
+    root.style.setProperty(`--split-${layout}-preview`, `${Math.round((1 - fraction) * 1000)}fr`);
+  }
   function applyPrefs(prefs = readPrefs()) {
     root.style.fontSize = `${prefs.uiScale}%`;
     root.style.setProperty('--editor-font-size', `${prefs.textSize}px`);
     root.dataset.notes = prefs.notes ? 'shown' : 'hidden';
     root.dataset.highlight = prefs.highlight ? 'on' : 'off';
     root.dataset.preview = prefs.preview;
+    applySplit('side', prefs.splitSide);
+    applySplit('below', prefs.splitBelow);
     applyRail(prefs.rail, prefs.railWidth);
   }
   applyTheme();
   applyPrefs();
-  return {THEMES, KEY_THEME, DEFAULTS, themeChoice, applyTheme, readPrefs, savePrefs, applyPrefs, applyRail, store, systemDark};
+  return {THEMES, KEY_THEME, DEFAULTS, themeChoice, applyTheme, readPrefs, savePrefs, applyPrefs, applyRail, applySplit, store, systemDark};
 })();
 </script>
 </head>
@@ -5652,6 +5670,7 @@ window.ModernSlidesEditor = (() => {
           <pre id="body-highlight" aria-hidden="true"></pre>
           <textarea id="body-editor" spellcheck="true" aria-label="Slide body syntax" placeholder="Title: New slide&#10;&#10;Text: Write here."></textarea>
         </div>
+        <div id="preview-resizer" role="separator" tabindex="0" aria-label="Resize the text and the preview (drag; double-click resets)" title="Drag to resize; double-click for half and half"></div>
         <div id="editor-preview" aria-label="Live preview of this slide"><div id="editor-preview-slot" class="stage-slot"></div></div>
         </div>
         <div id="format-bar" role="toolbar" aria-label="Text formatting">
@@ -5662,7 +5681,8 @@ window.ModernSlidesEditor = (() => {
           <button type="button" data-format="center" title="Align center" aria-label="Align center"><i class="fa-solid fa-align-center"></i></button>
           <button type="button" data-format="right" title="Align right" aria-label="Align right"><i class="fa-solid fa-align-right"></i></button>
           <span class="bar-toggles">
-            <button id="toggle-preview" type="button" class="bar-toggle" title="Show or hide a live preview of this slide (beside or below the text: editor settings)" aria-pressed="false"><i class="fa-regular fa-window-maximize"></i> Preview</button>
+            <button id="toggle-preview" type="button" class="bar-toggle" title="Show or hide a live preview of this slide" aria-pressed="false"><i class="fa-regular fa-window-maximize"></i> Preview</button>
+            <button id="toggle-preview-layout" type="button" class="bar-toggle" title="Put the preview below the text" aria-label="Preview layout"><i class="fa-solid fa-table-columns"></i></button>
             <button id="toggle-notes" type="button" class="bar-toggle" title="Show or hide speaker notes and print annotations" aria-pressed="true"><i class="fa-regular fa-note-sticky"></i> Notes</button>
           </span>
           <label class="layout-control" for="slide-layout">
@@ -10719,6 +10739,9 @@ function syncEditorSettings(prefs = editorPrefs.readPrefs()) {
   $('toggle-notes').setAttribute('aria-pressed', String(prefs.notes));
   $('editor-preview-mode').value = prefs.preview;
   $('toggle-preview').setAttribute('aria-pressed', String(prefs.preview !== 'off'));
+  const below = prefs.preview === 'below';
+  $('toggle-preview-layout').innerHTML = below ? '<i class="fa-solid fa-table-columns fa-rotate-90"></i> Below' : '<i class="fa-solid fa-table-columns"></i> Beside';
+  $('toggle-preview-layout').title = below ? 'The preview is below the text: click to put it beside' : 'The preview is beside the text: click to put it below';
 }
 function setupEditorSettings() {
   $('editor-text-size').addEventListener('input', event => updateEditorPrefs({textSize: Number(event.target.value)}));
@@ -10731,6 +10754,10 @@ function setupEditorSettings() {
   $('toggle-preview').addEventListener('click', () => {
     const prefs = editorPrefs.readPrefs();
     updateEditorPrefs({preview: prefs.preview === 'off' ? prefs.previewLayout : 'off'});
+  });
+  $('toggle-preview-layout').addEventListener('click', () => {
+    const layout = editorPrefs.readPrefs().preview === 'below' ? 'side' : 'below';
+    updateEditorPrefs({preview: layout, previewLayout: layout});
   });
   new ResizeObserver(() => fitFrameInSlot($('editor-preview-slot'))).observe($('editor-preview-slot'));
   $('editor-settings-reset').addEventListener('click', () => {
@@ -10777,6 +10804,47 @@ function setupRailResizer() {
     if (event.key === 'Enter') return updateEditorPrefs({rail: !prefs.rail});
     const width = (prefs.rail ? prefs.railWidth : 0) + (event.key === 'ArrowRight' ? 32 : -32);
     updateEditorPrefs(width < RAIL_MIN ? {rail: false} : {rail: true, railWidth: Math.min(maxWidth(), width)});
+  });
+}
+
+/* The divider between the slide text and the live preview: drag it (or use the arrow keys on it) to
+   share the space; double-click for half and half. Each layout keeps its own proportion. */
+function setupPreviewResizer() {
+  const handle = $('preview-resizer'), split = $('edit-split');
+  const key = () => (document.documentElement.dataset.preview === 'below' ? 'splitBelow' : 'splitSide');
+  const share = event => {
+    const box = split.getBoundingClientRect();
+    const fraction = key() === 'splitBelow' ? (event.clientY - box.top) / box.height : (event.clientX - box.left) / box.width;
+    return Math.min(.85, Math.max(.15, fraction));
+  };
+  let dragging = false, last = .5;
+  handle.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    dragging = true;
+    handle.setPointerCapture(event.pointerId);
+    handle.classList.add('dragging');
+    event.preventDefault();
+  });
+  handle.addEventListener('pointermove', event => {
+    if (!dragging) return;
+    last = share(event);
+    editorPrefs.applySplit(key() === 'splitBelow' ? 'below' : 'side', last);
+  });
+  const finish = () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    updateEditorPrefs({[key()]: last});
+  };
+  handle.addEventListener('pointerup', finish);
+  handle.addEventListener('pointercancel', finish);
+  handle.addEventListener('dblclick', () => updateEditorPrefs({[key()]: .5}));
+  handle.addEventListener('keydown', event => {
+    const below = key() === 'splitBelow';
+    const delta = {ArrowLeft: below ? 0 : -.05, ArrowRight: below ? 0 : .05, ArrowUp: below ? -.05 : 0, ArrowDown: below ? .05 : 0}[event.key];
+    if (!delta) return;
+    event.preventDefault(); event.stopPropagation();
+    updateEditorPrefs({[key()]: Math.min(.85, Math.max(.15, editorPrefs.readPrefs()[key()] + delta))});
   });
 }
 
@@ -10927,6 +10995,7 @@ async function initialize() {
   setupEditorThemes();
   setupEditorSettings();
   setupRailResizer();
+  setupPreviewResizer();
   setupMenus();
   setupHighlight();
   setupSlideIdField();
