@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#171717">
-<title>ModernSlides JSON</title>
+<title>ModernSlides</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -5573,7 +5573,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 457aaee27910 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 66cfe1724290 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -8319,8 +8319,19 @@ async function renderLoop() {
   });
   return state.renderPromise;
 }
+/* The browser tab shows the deck's title (Deck settings), so several open decks are told apart. */
+function deckTabTitle() {
+  const title = String(state.deck?.meta.title || '').trim();
+  return title && title !== 'Untitled Presentation' ? `${title} · ModernSlides` : 'ModernSlides';
+}
+function updateDocumentTitle() {
+  if (document.title !== deckTabTitle()) document.title = deckTabTitle();
+  const popup = state.speakerWindow;
+  if (popup && !popup.closed) popup.document.title = `Speaker view · ${deckTabTitle()}`;
+}
 function scheduleRender(reason = 'update', options = {}) {
   updateMathFontNotice();
+  updateDocumentTitle();
   const ids = Array.isArray(options.slideIds) ? options.slideIds.filter(Boolean) : [];
   if (options.full === false && ids.length) ids.forEach(id => state.pendingSlideIds.add(id));
   else { state.pendingRenderAll = true; state.pendingSlideIds.clear(); }
@@ -8605,6 +8616,7 @@ function speakerDocumentHTML() {
   const mathOutput = state.mathJaxFont ? `output:{font:${JSON.stringify(state.mathJaxFont)}},` : '';
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(`Speaker view · ${deckTabTitle()}`)}</title>
 <link rel="stylesheet" href="${fontHref}"><style>${styles}</style>
 <script>window.MathJax={loader:{load:[\"ui/safe\"]},tex:{inlineMath:[[\"$\",\"$\"],[\"\\\\(\",\"\\\\)\"]],displayMath:[[\"$$\",\"$$\"],[\"\\\\[\",\"\\\\]\"]],processEscapes:true},${mathOutput}startup:{typeset:false}};<\/script>
 <script defer src="${MATHJAX_SRC}"><\/script></head>
