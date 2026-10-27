@@ -5573,7 +5573,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 66cfe1724290 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 6a1bd3076b8f by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5584,7 +5584,7 @@ window.ModernSlidesEditor = (() => {
   const root = document.documentElement;
   const THEMES = ['auto', 'light', 'dark', 'slate'];
   const KEY_THEME = 'modernslides.editorTheme', KEY_PREFS = 'modernslides.editorPrefs';
-  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true, preview: 'off', previewLayout: 'side', splitSide: .5, splitBelow: .5};
+  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true, preview: 'off', previewLayout: 'side', splitSide: .5, splitBelow: .5, clickAdvance: false};
   const clamp = (value, low, high, fallback) => Number.isFinite(Number(value)) ? Math.min(high, Math.max(low, Number(value))) : fallback;
   const store = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
   const load = key => { try { return localStorage.getItem(key); } catch { return null; } };
@@ -5609,7 +5609,8 @@ window.ModernSlidesEditor = (() => {
       preview: ['off', 'side', 'below'].includes(saved.preview) ? saved.preview : DEFAULTS.preview,
       previewLayout: ['side', 'below'].includes(saved.previewLayout) ? saved.previewLayout : DEFAULTS.previewLayout,
       splitSide: clamp(saved.splitSide, .15, .85, DEFAULTS.splitSide),
-      splitBelow: clamp(saved.splitBelow, .15, .85, DEFAULTS.splitBelow)
+      splitBelow: clamp(saved.splitBelow, .15, .85, DEFAULTS.splitBelow),
+      clickAdvance: typeof saved.clickAdvance === 'boolean' ? saved.clickAdvance : DEFAULTS.clickAdvance
     };
   }
   function savePrefs(prefs) { store(KEY_PREFS, JSON.stringify(prefs)); }
@@ -5769,6 +5770,7 @@ window.ModernSlidesEditor = (() => {
   <label class="menu-check"><input id="editor-show-notes" type="checkbox"><span>Speaker notes and print annotations</span></label>
   <label class="menu-check"><input id="editor-show-rail" type="checkbox"><span>Slide thumbnails</span></label>
   <label class="menu-check"><input id="editor-highlight" type="checkbox"><span>Syntax colours</span></label>
+  <label class="menu-check" title="Presenting: a mouse or trackpad click on the right or left half moves forward or back. Keys, clickers and touch taps always work."><input id="editor-click-advance" type="checkbox"><span>Click the slide to advance</span></label>
   <button id="editor-settings-reset" class="menu-item" type="button"><i class="fa-solid fa-rotate"></i><span>Reset editor settings</span></button>
 </div>
 
@@ -10639,8 +10641,15 @@ function setupEvents() {
     }
   });
 
+  /* Clicking the left or right half of a presented slide steps back or forward. Taps on touch screens
+     always do (that is how one presents from a tablet); mouse and trackpad clicks only with the
+     "Click the slide to advance" setting, so a click that focuses the window or misses a button does
+     not move the talk. Keys and presentation clickers (which send keys) always work. */
+  let lastPointerType = 'mouse';
+  $('presentation-view').addEventListener('pointerdown', event => { lastPointerType = event.pointerType || 'mouse'; });
   $('presentation-view').addEventListener('click', event => {
     if (state.editMode || event.target.closest('a,button,iframe,#mobile-notes')) return;
+    if (lastPointerType === 'mouse' && !editorPrefs.readPrefs().clickAdvance) return;
     if (event.clientX < innerWidth / 2) previousStepOrSlide(); else nextStepOrSlide();
   });
   $('mobile-prev').addEventListener('click', previousStepOrSlide);
@@ -10748,6 +10757,7 @@ function syncEditorSettings(prefs = editorPrefs.readPrefs()) {
   $('editor-show-notes').checked = prefs.notes;
   $('editor-show-rail').checked = prefs.rail;
   $('editor-highlight').checked = prefs.highlight;
+  $('editor-click-advance').checked = prefs.clickAdvance;
   $('toggle-notes').setAttribute('aria-pressed', String(prefs.notes));
   $('editor-preview-mode').value = prefs.preview;
   $('toggle-preview').setAttribute('aria-pressed', String(prefs.preview !== 'off'));
@@ -10761,6 +10771,7 @@ function setupEditorSettings() {
   $('editor-show-notes').addEventListener('change', event => updateEditorPrefs({notes: event.target.checked}));
   $('editor-show-rail').addEventListener('change', event => updateEditorPrefs({rail: event.target.checked}));
   $('editor-highlight').addEventListener('change', event => updateEditorPrefs({highlight: event.target.checked}));
+  $('editor-click-advance').addEventListener('change', event => updateEditorPrefs({clickAdvance: event.target.checked}));
   $('toggle-notes').addEventListener('click', () => updateEditorPrefs({notes: !editorPrefs.readPrefs().notes}));
   $('editor-preview-mode').addEventListener('change', event => updateEditorPrefs(event.target.value === 'off' ? {preview: 'off'} : {preview: event.target.value, previewLayout: event.target.value}));
   $('toggle-preview').addEventListener('click', () => {
