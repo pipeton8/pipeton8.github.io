@@ -441,7 +441,9 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 }
 .slide-frame a { color: var(--accent); text-decoration-thickness: .055em; text-underline-offset: .12em; }
 /* \button[Label](#id): a link drawn as a button, in any theme; themes may restyle it. */
-.slide-frame .ms-button-link { display: inline-block; padding: .1em .75em .15em; border-radius: 1em; background: var(--accent); color: var(--bg); font-size: .8em; font-weight: 600; font-style: normal; line-height: 1.3; text-decoration: none; vertical-align: .08em; white-space: nowrap; }
+.slide-frame .ms-button-link { display: inline-block; padding: .1em .75em .15em; border-radius: 1em; background: var(--accent); color: var(--bg); font-size: calc(.8em * var(--button-scale, 1)); font-weight: 600; font-style: normal; line-height: 1.3; text-decoration: none; vertical-align: .08em; white-space: nowrap; }
+/* In a title, a button is the size it has in the body text, not a scaled-up title-sized one. */
+.slide-frame .slide-title .ms-button-link { font-size: calc(var(--u) * .8 * var(--button-scale, 1)); vertical-align: .2em; }
 .slide-frame .ms-button-right { float: right; margin-left: .5em; }
 .slide-frame .ms-button-left { float: left; margin-right: .5em; }
 
@@ -693,12 +695,12 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .theme-singapore strong.ms-button { font-weight: inherit; }
 .theme-singapore strong.ms-button > a, .theme-singapore strong.ms-button > em > a, .theme-singapore .ms-button-link {
   display: inline-block; padding: .14em .75em .2em; border-radius: 1em; background: #858585; color: #fff;
-  font-size: calc(var(--u) * .44); font-style: normal; font-weight: 500; font-variant-caps: small-caps; letter-spacing: .02em;
+  font-size: calc(var(--u) * .44 * var(--button-scale, 1)); font-style: normal; font-weight: 500; font-variant-caps: small-caps; letter-spacing: .02em;
   line-height: 1.15; vertical-align: .18em; white-space: nowrap;
 }
 .theme-singapore strong.ms-button > em { font-style: normal; color: inherit; }
 .theme-singapore strong.ms-button-right { float: right; margin-left: .5em; }
-.theme-singapore .slide-title strong.ms-button > a, .theme-singapore .slide-title .ms-button-link { vertical-align: .3em; }
+.theme-singapore .slide-title strong.ms-button > a, .theme-singapore .slide-title .ms-button-link { font-size: calc(var(--u) * .44 * var(--button-scale, 1)); vertical-align: .3em; }
 /* \lit{}: a faded, small citation line. */
 .theme-singapore em.ms-cite-line { display: inline-block; font-style: normal; font-size: .7em; opacity: .25; }
 .theme-singapore em.ms-cite-line a { color: #000; }
@@ -5573,7 +5575,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 6a1bd3076b8f by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides a63f5e448416 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -7420,28 +7422,32 @@ function maskInlineLinksAndUrls(text) {
   const pushToken = html => { const token = `\uE300${tokens.length}\uE301`; tokens.push(html); out += token; };
   while (i < source.length) {
     /* \button[Label](#id) or \button(right)[Label](url): a link drawn as a button. Options in
-       parentheses as for directives: right or align=right floats it to the right, left to the left. */
+       parentheses as for directives: right or align=right floats it to the right, left to the left;
+       size=0.8 scales it (1 is the normal size, which in a title is the body text's, not the title's). */
     if (source[i] === '\\' && /^\\button(?![A-Za-z])/i.test(source.slice(i, i + 8))) {
-      let j = i + 7, align = '';
+      let j = i + 7, align = '', scale = '';
       if (source[j] === '(') {
         const close = source.indexOf(')', j);
         if (close > j) {
           const options = source.slice(j + 1, close).split(/[;,]/).map(part => part.trim().toLowerCase());
           if (options.some(option => option === 'right' || option === 'align=right')) align = 'right';
           else if (options.some(option => option === 'left' || option === 'align=left')) align = 'left';
+          const size = options.map(option => /^size\s*=\s*(\d*\.?\d+)$/.exec(option)).find(Boolean);
+          if (size && Number(size[1]) > 0) scale = String(Math.min(Number(size[1]), 4));
           j = close + 1;
         }
       }
       const link = source[j] === '[' ? parseInlineLink(source, j) : null;
       if (link) {
         const classes = `ms-button-link${align ? ` ms-button-${align}` : ''}`;
+        const style = scale ? ` style="--button-scale: ${scale}"` : '';
         const safeLabel = formatInlineEmphasis(escapeHtml(link.label));
         if (link.url.startsWith('#')) {
           const id = link.url.slice(1);
-          pushToken(`<a href="#${escapeAttr(id)}" class="ms-link-internal ${classes}" data-slide-id="${escapeAttr(id)}">${safeLabel}</a>`);
+          pushToken(`<a href="#${escapeAttr(id)}" class="ms-link-internal ${classes}"${style} data-slide-id="${escapeAttr(id)}">${safeLabel}</a>`);
         } else if (/^(https?:|mailto:)/i.test(link.url)) {
-          pushToken(`<a href="${escapeAttr(link.url)}" class="${classes}" target="_blank" rel="noopener noreferrer">${safeLabel}</a>`);
-        } else pushToken(`<span class="${classes}">${safeLabel}</span>`);
+          pushToken(`<a href="${escapeAttr(link.url)}" class="${classes}"${style} target="_blank" rel="noopener noreferrer">${safeLabel}</a>`);
+        } else pushToken(`<span class="${classes}"${style}>${safeLabel}</span>`);
         i = link.end; continue;
       }
     }
