@@ -4914,7 +4914,18 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 #mobile-nav button:hover,
 #mobile-nav button:focus-visible { background: rgba(255,255,255,.3); }
 #mobile-open { margin-left: .15rem; border-left: 1px solid rgba(255,255,255,.28) !important; border-radius: 0 999px 999px 0 !important; }
-#mobile-open svg { width: 1.15rem; height: 1.15rem; fill: currentColor; }
+#mobile-open svg, #mobile-fullscreen svg { width: 1.15rem; height: 1.15rem; fill: currentColor; }
+#mobile-fullscreen .exit-icon, #mobile-fullscreen[aria-pressed="true"] .enter-icon { display: none; }
+#mobile-fullscreen[aria-pressed="true"] .exit-icon { display: inline; }
+#mobile-fullscreen[hidden] { display: none; }
+/* How to get full screen where the browser cannot (iPhone Safari): shown for a few seconds. */
+#mobile-hint {
+  position: fixed; z-index: 41; left: 50%; bottom: 4.6rem; transform: translateX(-50%);
+  width: max-content; max-width: min(26rem, calc(100vw - 2rem)); padding: .65rem .9rem; border-radius: .8rem;
+  background: rgba(0,0,0,.78); backdrop-filter: blur(8px); color: #fff; font: .85rem/1.4 var(--ui-font); text-align: center;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+#mobile-hint.show { opacity: 1; }
 #mobile-status { color: #fff; font: 600 .8rem/1 var(--ui-mono); min-width: 4rem; text-align: center; }
 @media (pointer: coarse), (max-width: 850px) { body:not(.edit-mode) #mobile-nav { display: flex; } }
 /* Phone held upright: prep view - the slide stays at the top, speaker notes scroll beneath it. */
@@ -5575,7 +5586,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides a63f5e448416 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides c9752dd650fc by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5655,10 +5666,15 @@ window.ModernSlidesEditor = (() => {
     <button id="mobile-prev" type="button" aria-label="Previous">◀</button>
     <span id="mobile-status">1/1</span>
     <button id="mobile-next" type="button" aria-label="Next">▶</button>
+    <button id="mobile-fullscreen" type="button" title="Full screen" aria-label="Full screen" aria-pressed="false">
+      <svg class="enter-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4V4Zm10 0h6v6h-2V6h-4V4ZM4 14h2v4h4v2H4v-6Zm14 0h2v6h-6v-2h4v-4Z"/></svg>
+      <svg class="exit-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h2v6H4V8h4V4Zm6 0h2v4h4v2h-6V4ZM4 14h6v6H8v-4H4v-2Zm10 0h6v2h-4v4h-2v-6Z"/></svg>
+    </button>
     <button id="mobile-open" type="button" title="Open deck from Files" aria-label="Open deck from Files">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h4.2l2 2H18.5A2.5 2.5 0 0 1 21 7.5V9H8.2a3 3 0 0 0-2.75 1.8L3 16.4V5.5Zm4.28 6.1A1 1 0 0 1 8.2 11H22l-3.1 7.1A3 3 0 0 1 16.15 20H3.7l3.58-8.4Z"/></svg>
     </button>
   </nav>
+  <div id="mobile-hint" role="status" aria-live="polite"></div>
 </div>
 
 <div id="editor-view" aria-label="Slide editor">
@@ -8577,9 +8593,41 @@ function toggleEdit(force) {
     fitFrameInSlot($('presentation-slot'));
   });
 }
+/* Full screen. iPad Safari has the Fullscreen API (prefixed before iPadOS 16.4); iPhone Safari lets
+   only videos go full screen, so there the button explains how to open the viewer from the Home Screen. */
+function fullscreenElement() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+function fullscreenAvailable() { return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled); }
+function runningAsApp() { return navigator.standalone === true || !!window.matchMedia?.('(display-mode: standalone), (display-mode: fullscreen)').matches; }
 function toggleFullscreen() {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
-  else document.exitFullscreen?.();
+  const root = document.documentElement;
+  if (fullscreenElement()) (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)?.catch?.(() => {});
+  else (root.requestFullscreen || root.webkitRequestFullscreen)?.call(root)?.catch?.(() => {});
+}
+let mobileHintTimer = 0;
+function showMobileHint(text) {
+  const hint = $('mobile-hint');
+  hint.textContent = text;
+  hint.classList.add('show');
+  clearTimeout(mobileHintTimer);
+  mobileHintTimer = setTimeout(() => hint.classList.remove('show'), 7000);
+}
+function setupMobileFullscreen() {
+  const button = $('mobile-fullscreen');
+  const sync = () => {
+    const on = !!fullscreenElement();
+    button.setAttribute('aria-pressed', String(on));
+    button.title = on ? 'Exit full screen' : 'Full screen';
+    button.setAttribute('aria-label', button.title);
+    /* Opened from the Home Screen there is no browser bar to hide unless the API exists. */
+    button.hidden = !fullscreenAvailable() && runningAsApp();
+  };
+  button.addEventListener('click', () => {
+    if (fullscreenAvailable()) toggleFullscreen();
+    else showMobileHint('For full screen on iPhone: tap Share, then Add to Home Screen, and open the slides from the Home Screen icon.');
+  });
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  sync();
 }
 function nextStepOrSlide() {
   ensurePresentableCurrent();
@@ -10660,6 +10708,7 @@ function setupEvents() {
   });
   $('mobile-prev').addEventListener('click', previousStepOrSlide);
   $('mobile-next').addEventListener('click', nextStepOrSlide);
+  setupMobileFullscreen();
 
   document.addEventListener('keydown', event => {
     const modal = document.querySelector('.modal.open');
@@ -10667,7 +10716,7 @@ function setupEvents() {
     if (event.key === 'Escape') {
       if (anyMenuOpen()) { closeMenus(); event.preventDefault(); return; }
       if (modal) { closeModal(modal.id); event.preventDefault(); return; }
-      if (document.fullscreenElement) { document.exitFullscreen?.(); event.preventDefault(); return; }
+      if (fullscreenElement()) { toggleFullscreen(); event.preventDefault(); return; }
       if (state.editMode) { toggleEdit(false); event.preventDefault(); }
       return;
     }
