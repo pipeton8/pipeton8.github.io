@@ -5586,7 +5586,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides c9752dd650fc by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 9bacea21dc70 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -6121,8 +6121,8 @@ const THEME_IDS = [
 ];
 /* Math fonts that differ from MathJax's default, by theme. MathJax fixes its output font at startup,
    so loadMathJax() reads this once, for the first deck's theme; a later theme switch takes effect on
-   reload. */
-const THEME_MATH_FONTS = {singapore: 'mathjax-fira'};
+   reload. Every theme currently uses the default (e.g. {singapore: 'mathjax-fira'} would change one). */
+const THEME_MATH_FONTS = {};
 const MATHJAX_SRC = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js';
 /* Themes that draw a navigation bar from the slides' Header: lines (see buildNavbar). */
 const NAVBAR_THEMES = new Set(['singapore']);
