@@ -5586,7 +5586,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides be1015f23f00 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 4539d8634e1f by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -8260,25 +8260,42 @@ const MATH_FIT_FLOOR = .7;
 function fitDisplayMath(frame) {
   let smallest = 1;
   displayEquations(frame).forEach(box => {
-    box.style.fontSize = '';
+    const base = mathBaseSize(box);
+    const setScale = scale => { box.style.fontSize = `${(base * scale).toFixed(1)}%`; };
+    setScale(1);
     const excess = equationExcess(box);
     if (excess <= 1.5) return;
     const natural = Math.max(box.offsetWidth, box.scrollWidth);
     let scale = Math.max(MATH_FIT_FLOOR, Math.floor((natural - excess) / natural * 100) / 100);
-    box.style.fontSize = `${Math.round(scale * 100)}%`;
+    setScale(scale);
     while (equationExcess(box) > 1.5 && scale > MATH_FIT_FLOOR) {
       scale = Math.max(MATH_FIT_FLOOR, scale - .02);
-      box.style.fontSize = `${Math.round(scale * 100)}%`;
+      setScale(scale);
     }
     smallest = Math.min(smallest, scale);
   });
   return smallest;
+}
+/* MathJax enlarges math so its x-height matches the text's, by an inline font-size on each
+   mjx-container (about 119% beside Fira Sans). Beamer does not: math is set at the text's point
+   size. The themes listed here follow Beamer. The size MathJax chose is kept in data-mjx-size, so
+   equation fitting scales from it and a refit starts from it again. */
+const MATH_AT_TEXT_SIZE_THEMES = new Set(['singapore']);
+function mathBaseSize(box) {
+  if (box.dataset.mjxSize === undefined) box.dataset.mjxSize = box.style.fontSize || '';
+  const frame = box.closest('.slide-frame');
+  if (frame && [...MATH_AT_TEXT_SIZE_THEMES].some(theme => frame.classList.contains(`theme-${theme}`))) return 100;
+  return parseFloat(box.dataset.mjxSize) || 100;
+}
+function sizeMath(frame) {
+  frame.querySelectorAll('mjx-container').forEach(box => { box.style.fontSize = `${mathBaseSize(box).toFixed(1)}%`; });
 }
 function fitCanonicalFrame(frame) {
   const flow = frame.querySelector('.slide-flow');
   if (!flow) return;
   let fit = 1;
   frame.style.setProperty('--fit', '1');
+  sizeMath(frame);
   let mathFit = fitDisplayMath(frame);
   let measure = semanticOverflow(frame);
   while (measure.overflow && fit > .72) {
