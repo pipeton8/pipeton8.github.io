@@ -5586,7 +5586,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 9bacea21dc70 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides be1015f23f00 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -8234,20 +8234,61 @@ function semanticOverflow(frame) {
     if (code.scrollHeight > code.clientHeight + tolerance) reasons.push(`code ${index + 1} vertical`);
     if (code.scrollWidth > code.clientWidth + tolerance) reasons.push(`code ${index + 1} horizontal`);
   });
+  // A display equation is a full-width block, so the flow check above misses one that runs past
+  // the right edge of its list item, column, or cell.
+  displayEquations(frame).forEach((box, index) => {
+    if (equationExcess(box) > tolerance) reasons.push(`equation ${index + 1} horizontal`);
+  });
   return {overflow:reasons.length > 0, reasons:[...new Set(reasons)]};
+}
+function displayEquations(frame) { return [...frame.querySelectorAll('mjx-container[display="true"]')]; }
+/* How far a display equation sticks out of the content box of its containing block (the list item,
+   column, or cell). An equation with a \tag sets its own min-width, so its own box is no guide. */
+function equationExcess(box) {
+  const view = box.ownerDocument.defaultView;
+  let block = box.parentElement;
+  while (block && /^(inline|contents)$/.test(view.getComputedStyle(block).display)) block = block.parentElement;
+  if (!block) return 0;
+  const style = view.getComputedStyle(block);
+  const available = block.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  return Math.max(box.offsetWidth, box.scrollWidth) - available;
+}
+/* A display equation wider than the space it sits in is scaled down on its own, so bullet
+   indentation and the surrounding text are kept, to MATH_FIT_FLOOR at most. Only if that is not
+   enough does it count as overflow, which then shrinks the whole slide. Returns the smallest scale. */
+const MATH_FIT_FLOOR = .7;
+function fitDisplayMath(frame) {
+  let smallest = 1;
+  displayEquations(frame).forEach(box => {
+    box.style.fontSize = '';
+    const excess = equationExcess(box);
+    if (excess <= 1.5) return;
+    const natural = Math.max(box.offsetWidth, box.scrollWidth);
+    let scale = Math.max(MATH_FIT_FLOOR, Math.floor((natural - excess) / natural * 100) / 100);
+    box.style.fontSize = `${Math.round(scale * 100)}%`;
+    while (equationExcess(box) > 1.5 && scale > MATH_FIT_FLOOR) {
+      scale = Math.max(MATH_FIT_FLOOR, scale - .02);
+      box.style.fontSize = `${Math.round(scale * 100)}%`;
+    }
+    smallest = Math.min(smallest, scale);
+  });
+  return smallest;
 }
 function fitCanonicalFrame(frame) {
   const flow = frame.querySelector('.slide-flow');
   if (!flow) return;
   let fit = 1;
   frame.style.setProperty('--fit', '1');
+  let mathFit = fitDisplayMath(frame);
   let measure = semanticOverflow(frame);
   while (measure.overflow && fit > .72) {
     fit = Math.max(.72, fit - .02);
     frame.style.setProperty('--fit', fit.toFixed(2));
+    mathFit = fitDisplayMath(frame);
     measure = semanticOverflow(frame);
   }
   frame.dataset.fit = fit.toFixed(2);
+  frame.dataset.mathFit = mathFit.toFixed(2);
   frame.dataset.overflow = measure.overflow ? 'true' : 'false';
   frame.dataset.overflowReason = measure.reasons.join(', ');
 }
@@ -8311,8 +8352,10 @@ function updateRenderDiagnostics() {
   const frame = canonicalFrame(state.currentSlideId);
   if (!frame) { setRenderStatus(''); return; }
   const fit = Number(frame.dataset.fit || 1);
-  if (frame.dataset.overflow === 'true') setRenderStatus(`OVERFLOW · fit ${Math.round(fit * 100)}% · ${frame.dataset.overflowReason || 'content clipped'}`);
-  else if (fit < .999) setRenderStatus(`fit ${Math.round(fit * 100)}%`);
+  const mathFit = Number(frame.dataset.mathFit || 1);
+  const math = mathFit < .999 ? ` · equation ${Math.round(mathFit * 100)}%` : '';
+  if (frame.dataset.overflow === 'true') setRenderStatus(`OVERFLOW · fit ${Math.round(fit * 100)}%${math} · ${frame.dataset.overflowReason || 'content clipped'}`);
+  else if (fit < .999 || math) setRenderStatus(`fit ${Math.round(fit * 100)}%${math}`);
   else setRenderStatus('');
 }
 async function renderLoop() {
