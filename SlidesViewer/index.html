@@ -5091,7 +5091,8 @@ html[data-rail="hidden"] #thumb-rail { display: none; }
   font-size: 11px;
 }
 .thumb-controls button:hover:not(:disabled) { background: #fff; border-color: var(--ui-selected); }
-.thumb-hidden-label {
+.thumb-hidden-label,
+.thumb-final-label {
   position: absolute;
   z-index: 20;
   right: 4px;
@@ -5102,6 +5103,7 @@ html[data-rail="hidden"] #thumb-rail { display: none; }
   color: #fff;
   font: 700 9px/1 var(--ui-font);
 }
+.thumb-final-label { right: auto; left: 4px; background: #1d4ed8; }
 
 #editor-main {
   min-width: 0;
@@ -5617,7 +5619,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 66886289c085 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 837697f02f59 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5805,6 +5807,7 @@ window.ModernSlidesEditor = (() => {
   <hr>
   <button id="deck-settings" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-gear"></i><span>Deck settings…</span><kbd>title, author, footer</kbd></button>
   <button id="toggle-page-numbers" class="menu-item" type="button" role="menuitemcheckbox" aria-pressed="true"><i class="fa-solid fa-arrow-down-1-9"></i><span>Slide numbers</span></button>
+  <button id="toggle-final-slide" class="menu-item" type="button" role="menuitemcheckbox" aria-pressed="false" title="Slide numbers count up to this slide (e.g. a thank-you slide); the slides after it are an appendix, numbered on their own from 1"><i class="fa-solid fa-flag-checkered"></i><span>This is the final slide</span></button>
   <button id="manage-assets" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-images"></i><span>Images in this deck…</span></button>
   <button id="view-json" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-code"></i><span>View JSON…</span></button>
 </div>
@@ -6207,7 +6210,7 @@ const DECK_SCHEMA = {
     slide:{
       type:'object',additionalProperties:false,required:['id','hidden','layout','blocks'],
       properties:{
-        id:{type:'string'},hidden:{type:'boolean'},layout:{enum:['auto','top','center','statement','data','full']},
+        id:{type:'string'},hidden:{type:'boolean'},final:{type:'boolean'},layout:{enum:['auto','top','center','statement','data','full']},
         background:{anyOf:[{type:'null'},{type:'object',additionalProperties:false,required:['src','mode'],properties:{src:{type:'string'},mode:{enum:['tint','full']}}}]},
         header:{type:'string'},aside:{type:'string'},speaker:{type:'string'},print:{type:'string'},steps:{type:'integer',minimum:0},
         blocks:{type:'array',items:{$ref:'#/$defs/block'}}
@@ -6272,7 +6275,7 @@ function validateDeckInput(deck) {
   if (!Array.isArray(deck?.slides) || !deck.slides.length) errors.push('deck.slides must be a non-empty array.');
   else deck.slides.forEach((slide,index) => {
     const path = `deck.slides[${index}]`;
-    collectUnknownKeys(slide, new Set(['id','hidden','layout','background','header','aside','speaker','print','steps','blocks']), path, errors);
+    collectUnknownKeys(slide, new Set(['id','hidden','final','layout','background','header','aside','speaker','print','steps','blocks']), path, errors);
     if (slide?.background != null) collectUnknownKeys(slide.background, new Set(['src','mode']), `${path}.background`, errors);
     if (!Array.isArray(slide?.blocks)) errors.push(`${path}.blocks must be an array.`);
     else slide.blocks.forEach((block,blockIndex) => validateBlockInput(block, `${path}.blocks[${blockIndex}]`, errors));
@@ -6618,6 +6621,7 @@ function normalizeDeck(input) {
     slides: Array.isArray(input.slides) ? input.slides.map(slide => ({
       id: slide?.id == null ? '' : String(slide.id).trim(),
       hidden: !!slide?.hidden,
+      ...(slide?.final ? {final: true} : {}),
       layout: LAYOUTS.has(slide?.layout) ? slide.layout : 'auto',
       background: slide?.background?.src ? {src:String(slide.background.src), mode: slide.background.mode === 'full' ? 'full' : 'tint'} : null,
       header: String(slide?.header ?? ''),
@@ -6629,6 +6633,8 @@ function normalizeDeck(input) {
     })) : []
   };
   if (!deck.slides.length) deck.slides.push(freshSlide('New slide', 'slide1'));
+  /* At most one final slide (see frameNumberInfo); stored only when set, so other decks stay as they were. */
+  deck.slides.filter(slide => slide.final).slice(1).forEach(slide => { delete slide.final; });
   deck.meta.title = String(deck.meta.title || 'Untitled Presentation');
   deck.meta.theme = THEME_IDS.some(([id]) => id === deck.meta.theme) ? deck.meta.theme : DEFAULT_THEME;
   if (deck.meta.palette === DEFAULT_PALETTE || !PALETTE_IDS.some(([id]) => id === deck.meta.palette)) delete deck.meta.palette;
@@ -8034,12 +8040,20 @@ function inferredLayout(slide) {
   if (meaningful.some(block => ['table','columns'].includes(block.type))) return 'data';
   return 'auto';
 }
+/* A slide's number and total, counting only the slides shown in the talk. With a final slide
+   (slide.final, e.g. "Thank you"), numbers count up to it and the slides after it are an appendix
+   numbered on its own from 1, as Beamer's appendixnumberbeamer does. A hidden slide, seen only in the
+   editor, gets its place among all the slides of its part. */
 function frameNumberInfo(slide) {
-  const visible = visibleSlides();
-  const visibleIndex = visible.findIndex(item => item.id === slide.id);
-  if (visibleIndex >= 0) return {current:visibleIndex + 1, total:visible.length, percent: visible.length ? `${(visibleIndex + 1) / visible.length * 100}%` : '0%'};
-  const absolute = state.deck.slides.findIndex(item => item.id === slide.id);
-  return {current:absolute + 1, total:state.deck.slides.length, percent: state.deck.slides.length ? `${(absolute + 1) / state.deck.slides.length * 100}%` : '0%'};
+  const slides = state.deck.slides;
+  const end = slides.findIndex(item => item.final);
+  const index = slides.findIndex(item => item.id === slide.id);
+  const appendix = end >= 0 && index > end;
+  const part = end < 0 ? slides : appendix ? slides.slice(end + 1) : slides.slice(0, end + 1);
+  const visible = part.filter(item => !item.hidden);
+  let position = visible.findIndex(item => item.id === slide.id), total = visible.length;
+  if (position < 0) { position = part.findIndex(item => item.id === slide.id); total = part.length; }
+  return {current:position + 1, total, percent: total ? `${(position + 1) / total * 100}%` : '0%'};
 }
 /* Navigation bar for NAVBAR_THEMES, computed from the whole deck whenever a slide is rendered. In
    those themes a slide's Header names its section instead of being printed:
@@ -8546,6 +8560,7 @@ function buildThumbnailElement(slide, index) {
   const del = document.createElement('button'); del.type='button'; del.title='Delete slide'; del.setAttribute('aria-label','Delete slide'); del.dataset.action='delete'; del.disabled=state.deck.slides.length<=1; del.innerHTML='<i class="fa-solid fa-minus"></i>';
   controls.append(add,del); canvas.appendChild(controls);
   if (slide.hidden) { const label=document.createElement('span'); label.className='thumb-hidden-label'; label.textContent='HIDDEN'; canvas.appendChild(label); }
+  if (slide.final) { const label=document.createElement('span'); label.className='thumb-final-label'; label.textContent='FINAL'; canvas.appendChild(label); }
   wrapper.appendChild(canvas);
   return wrapper;
 }
@@ -8578,6 +8593,7 @@ function updateToolbarState() {
   palettes.value = activePalette() || DEFAULT_PALETTE;
   palettes.title = takesPalette ? 'Colour palette' : 'This theme keeps its own colours (palettes: Singapore)';
   $('toggle-page-numbers').setAttribute('aria-pressed', String(!!state.deck.meta.pageNumbers));
+  $('toggle-final-slide').setAttribute('aria-pressed', String(!!slide?.final));
   $('toggle-hidden').innerHTML = slide?.hidden ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
   updateHistoryButtons();
 }
@@ -8635,6 +8651,7 @@ function duplicateSlide(id = state.currentSlideId) {
 
   const copy = deepClone(state.deck.slides[index]);
   copy.id = nextSlideId(state.deck);
+  delete copy.final;
 
   state.deck.slides.splice(index + 1, 0, copy);
   state.currentSlideId = copy.id;
@@ -8693,6 +8710,24 @@ function togglePageNumbers() {
   state.deck.meta.pageNumbers = !state.deck.meta.pageNumbers;
   autosave();
   scheduleRender('numbers');
+}
+/* Make the current slide the talk's final slide (numbers count up to it; the rest is the appendix),
+   or, on the final slide, count every slide again. One slide at most carries the mark. */
+function toggleFinalSlide() {
+  if (state.editMode) commitEditor({record:true});
+  const slide = currentSlide();
+  if (!slide) return;
+  pushUndo();
+  const wasFinal = !!slide.final;
+  state.deck.slides.forEach(item => { delete item.final; });
+  if (!wasFinal) slide.final = true;
+  autosave();
+  const index = state.deck.slides.indexOf(slide);
+  const appendix = state.deck.slides.slice(index + 1).filter(item => !item.hidden).length;
+  const message = wasFinal ? 'Slide numbers count every slide again'
+    : `Slide numbers end at ${slide.id}${appendix ? ` · ${appendix} later slide${appendix === 1 ? '' : 's'} numbered as the appendix` : ' (no slides after it)'}`;
+  scheduleRender('final');
+  state.autosaveChain.then(() => setStatus(message, 'saved'));
 }
 function ensurePresentableCurrent() {
   /* While editing, a hidden slide may stay current: moving off it here would
@@ -10621,6 +10656,7 @@ function setupEvents() {
   $('theme-select').addEventListener('change', event => setTheme(event.target.value));
   $('palette-select').addEventListener('change', event => setPalette(event.target.value));
   $('toggle-page-numbers').addEventListener('click', togglePageNumbers);
+  $('toggle-final-slide').addEventListener('click', toggleFinalSlide);
   $('deck-settings').addEventListener('click', openSettings);
   $('save-settings').addEventListener('click', saveSettings);
   $('help-button').addEventListener('click', () => openModal('help-modal'));
