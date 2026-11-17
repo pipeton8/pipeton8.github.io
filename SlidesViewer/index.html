@@ -645,7 +645,8 @@ button:disabled { cursor: not-allowed; opacity: .42; }
    the edge and text 1cm (4.25cqw) further in. Header: lines name navigation-bar sections (see
    buildNavbar). Inline roles marked by markInlineRoles: strong.ms-button is a grey Beamer button,
    .ms-button-right one pushed to the right margin, em.ms-cite-line a faded citation line, and
-   colours come from the general [text]{color} syntax. */
+   colours come from the general [text]{color} syntax. Every colour goes through a variable, so a
+   colour palette (.has-palette, below the themes) can recolour the theme. */
 .theme-singapore {
   --base: 2.425cqw; --bg: #ffffff; --text: #000000; --accent: #1f8a1c; --accent-2: #8c8c8c; --line: #000000;
   --body-font: "Fira Sans", Helvetica, sans-serif; --display-font: "Fira Sans", Helvetica, sans-serif; --sans-font: "Fira Sans", Helvetica, sans-serif;
@@ -654,8 +655,9 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   --flow-width: 100%; --flow-justify: flex-start;
   --title-scale: 1.72; --title-leading: 1.1; --title-weight: 700; --title-align: left; --title-border: 0; --title-pad-bottom: 0; --title-margin-bottom: .6cqw;
   --big-scale: 1.6; --small-scale: .8; --tiny-scale: .55; --caption-scale: .78; --header-scale: .5; --sublist-scale: .9em;
-  --col-gap: 1.2cqw; --table-scale: .8; --table-border: 0; --table-header-bg: transparent; --table-header-color: #000; --table-row-alt: transparent;
-  --footer-color: #8c8c8c; --progress-bg: #8c8c8c;
+  --col-gap: 1.2cqw; --table-scale: .8; --table-border: 0; --table-header-bg: transparent; --table-header-color: var(--text); --table-row-alt: transparent;
+  --footer-color: var(--accent-2); --progress-bg: var(--accent-2);
+  --nav-shade: #c6c6c6; --nav-shade-2: #ececec; --nav-text: #a3a3a3; --nav-current: #1e1e1e; --button-bg: #858585; --button-text: #fff;
 }
 .theme-singapore:not(:has(> .slide-navbar)) { --slide-pad-top: 2.2cqw; }
 .theme-singapore.layout-data, .theme-singapore.layout-top { --flow-width: 100%; --flow-justify: flex-start; }
@@ -668,11 +670,11 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .theme-singapore .slide-flow > :last-child { margin-bottom: auto; }
 .theme-singapore .slide-flow > .block-image:last-child, .theme-singapore .slide-flow > .block-columns:last-child { margin-bottom: 0; }
 /* Navigation bar on a light grey shaded band. */
-.theme-singapore:has(> .slide-navbar) { --stage-decoration: linear-gradient(180deg, #c6c6c6 0, #ececec 3.6cqw, #ffffff 10cqw); }
-.theme-singapore .slide-navbar { height: 4cqw; padding: .45cqw 1.8cqw 0; background: transparent; color: #a3a3a3; font-weight: 400; line-height: 1.3; }
+.theme-singapore:has(> .slide-navbar) { --stage-decoration: linear-gradient(180deg, var(--nav-shade) 0, var(--nav-shade-2) 3.6cqw, var(--bg) 10cqw); }
+.theme-singapore .slide-navbar { height: 4cqw; padding: .45cqw 1.8cqw 0; background: transparent; color: var(--nav-text); font-weight: 400; line-height: 1.3; }
 .theme-singapore .slide-navbar a { color: inherit; }
-.theme-singapore .nav-section.current { color: #1e1e1e; }
-.theme-singapore .nav-name:hover { color: #000; }
+.theme-singapore .nav-section.current { color: var(--nav-current); }
+.theme-singapore .nav-name:hover { color: var(--text); }
 /* Lists: Beamer's level-1 and level-2 geometry. */
 .theme-singapore .block-list { line-height: var(--body-leading); }
 .theme-singapore .slide-flow > .block-list { padding-left: calc(var(--text-indent) + 1.9em); }
@@ -694,7 +696,7 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 /* Beamer buttons; \hfill-ed ones float to the right margin of their line. */
 .theme-singapore strong.ms-button { font-weight: inherit; }
 .theme-singapore strong.ms-button > a, .theme-singapore strong.ms-button > em > a, .theme-singapore .ms-button-link {
-  display: inline-block; padding: .14em .75em .2em; border-radius: 1em; background: #858585; color: #fff;
+  display: inline-block; padding: .14em .75em .2em; border-radius: 1em; background: var(--button-bg); color: var(--button-text);
   font-size: calc(var(--u) * .44 * var(--button-scale, 1)); font-style: normal; font-weight: 500; font-variant-caps: small-caps; letter-spacing: .02em;
   line-height: 1.15; vertical-align: .18em; white-space: nowrap;
 }
@@ -703,22 +705,22 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .theme-singapore .slide-title strong.ms-button > a, .theme-singapore .slide-title .ms-button-link { font-size: calc(var(--u) * .44 * var(--button-scale, 1)); vertical-align: .3em; }
 /* \lit{}: a faded, small citation line. */
 .theme-singapore em.ms-cite-line { display: inline-block; font-style: normal; font-size: .7em; opacity: .25; }
-.theme-singapore em.ms-cite-line a { color: #000; }
+.theme-singapore em.ms-cite-line a { color: var(--text); }
 /* Aside: a small grey note in the bottom-right corner, right-aligned to the text margin, above the
    footer. Slides with an aside reserve room for two lines of it under the body, so the two never
    overlap (a longer aside should be shortened). */
 .theme-singapore:has(> .slide-aside) { --slide-pad-bottom: 5cqw; }
 .theme-singapore .slide-aside { top: auto; bottom: 2cqw; right: calc(var(--slide-pad-right) + var(--text-indent)); width: auto; max-width: 45cqw; text-align: right; }
 /* Figures. */
-.theme-singapore .image-caption { color: #000; margin-top: .3em; }
+.theme-singapore .image-caption { color: var(--text); margin-top: .3em; }
 .theme-singapore .slide-column .block-image { flex: 0 1 auto; }
 /* Tables: booktabs-like, a double rule above and below, a single rule under the header only. */
-.theme-singapore .block-table { border-collapse: separate; border-spacing: 0; border-top: .3cqw double #000; border-bottom: .3cqw double #000; line-height: 1.2; }
+.theme-singapore .block-table { border-collapse: separate; border-spacing: 0; border-top: .3cqw double var(--text); border-bottom: .3cqw double var(--text); line-height: 1.2; }
 .theme-singapore .block-table th, .theme-singapore .block-table td { border: 0; padding: .16em .45em; }
 .theme-singapore .block-table tr:first-child > * { padding-top: .45em; }
 .theme-singapore .block-table tr:last-child > * { padding-bottom: .45em; }
 .theme-singapore .block-table th { font-weight: 400; text-align: center; }
-.theme-singapore .block-table tr:has(+ tr > td) > th { border-bottom: max(1px, .06cqw) solid #000; padding-bottom: .4em; }
+.theme-singapore .block-table tr:has(+ tr > td) > th { border-bottom: max(1px, .06cqw) solid var(--text); padding-bottom: .4em; }
 .theme-singapore .block-table tr:has(> th) + tr:has(> td) > * { padding-top: .4em; }
 /* Title page (the center layout) and closing frame (statement). */
 .theme-singapore.layout-center { --slide-pad-top: 2cqw; --flow-width: 100%; }
@@ -4901,6 +4903,34 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .theme-banner a { color: var(--text); text-decoration-color: var(--accent); text-decoration-thickness: .14em; }
 /* ---------- end of theme pack ---------- */
 
+/* ---------- Colour palettes ---------- */
+/* A palette (deck.meta.palette, PALETTE_IDS) replaces a theme's colours; the frame gets
+   .palette-<id> and .has-palette, but only in a theme listed in PALETTE_THEMES, because most themes
+   fix colours their palette cannot reach. Each palette sets the slide colours (--bg, --text, links
+   in --accent, secondary text in --accent-2, light rules in --line) and --structure, Beamer's
+   structure colour: titles, bullets, navigation and buttons. A theme maps its own roles onto these
+   under .has-palette. Most palettes take their colours from the theme they are named after. */
+.slide-frame.palette-oxford { --bg: #fcfcfa; --text: #1a1a1a; --structure: #002147; --accent: #2e6aa3; --accent-2: #708090; --line: #d4d4d4; }
+.slide-frame.palette-aicher { --bg: #fbfbf9; --text: #1c1c1c; --structure: #2e7fb8; --accent: #4e7a3a; --accent-2: #767676; --line: #dedede; }
+.slide-frame.palette-isotype { --bg: #f9f8f4; --text: #16161a; --structure: #c02128; --accent: #3d6c8c; --accent-2: #75726a; --line: #c9c6bc; }
+.slide-frame.palette-calgary { --bg: #ffffff; --text: #242424; --structure: #7a309e; --accent: #7a309e; --accent-2: #8a7d90; --line: #dedede; }
+.slide-frame.palette-cooper { --bg: #f7f5ef; --text: #10191c; --structure: #0a7f93; --accent: #c4502c; --accent-2: #6b7275; --line: #c9c6bc; }
+.slide-frame.palette-pavilion { --bg: #f4f2ec; --text: #1c1c1a; --structure: #2e4a41; --accent: #866629; --accent-2: #807d75; --line: #c9c4b8; }
+.slide-frame.palette-modern-dark { --bg: #111317; --text: #e9edf2; --structure: #4d9cff; --accent: #8fc0ff; --accent-2: #9aa4b1; --line: #343a43; }
+.slide-frame.palette-fili { --bg: #211d18; --text: #efe6d6; --structure: #c8a24a; --accent: #d9b766; --accent-2: #a08a63; --line: #443c31; }
+/* Singapore: the structure colour takes the frame titles, bullets, navigation band and buttons. */
+.theme-singapore.has-palette {
+  --title-color: var(--structure);
+  --nav-shade: color-mix(in srgb, var(--structure) 28%, var(--bg));
+  --nav-shade-2: color-mix(in srgb, var(--structure) 8%, var(--bg));
+  --nav-text: color-mix(in srgb, var(--structure) 45%, var(--bg));
+  --nav-current: var(--structure);
+  --button-bg: var(--structure);
+  --button-text: var(--bg);
+}
+.theme-singapore.has-palette .block-list li::marker,
+.theme-singapore.has-palette .block-sublist li.custom-marker::before { color: var(--structure); }
+
 /* ---------- Presentation ---------- */
 #presentation-view { position: fixed; inset: 0; display: grid; place-items: center; background: #000; overflow: hidden; }
 .stage-slot { position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; }
@@ -5299,6 +5329,7 @@ html[data-highlight="off"] #body-highlight { visibility: hidden; }
 .toolbar-spacer { flex: 1 0 1.5rem; }
 .toolbar-group { display: inline-flex; flex: 0 0 auto; gap: .25rem; padding-right: .35rem; margin-right: .05rem; border-right: 1px solid var(--ui-line); }
 #theme-select { min-width: 10rem; }
+#toolbar select:disabled { color: var(--ui-muted); }
 #toolbar .menu-button { width: auto; padding: 0 .45rem; display: inline-flex; align-items: center; gap: .3rem; }
 #toolbar .menu-button .caret { font-size: .7em; opacity: .7; }
 #toolbar .menu-button[aria-expanded="true"] { border-color: var(--ui-hover-line); background: var(--ui-subtle); }
@@ -5586,7 +5617,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 4539d8634e1f by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 66886289c085 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5597,7 +5628,7 @@ window.ModernSlidesEditor = (() => {
   const root = document.documentElement;
   const THEMES = ['auto', 'light', 'dark', 'slate'];
   const KEY_THEME = 'modernslides.editorTheme', KEY_PREFS = 'modernslides.editorPrefs';
-  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true, preview: 'off', previewLayout: 'side', splitSide: .5, splitBelow: .5, clickAdvance: false};
+  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true, preview: 'off', previewLayout: 'side', splitSide: .5, splitBelow: .5, clickAdvance: false, tabIndents: true};
   const clamp = (value, low, high, fallback) => Number.isFinite(Number(value)) ? Math.min(high, Math.max(low, Number(value))) : fallback;
   const store = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
   const load = key => { try { return localStorage.getItem(key); } catch { return null; } };
@@ -5623,7 +5654,8 @@ window.ModernSlidesEditor = (() => {
       previewLayout: ['side', 'below'].includes(saved.previewLayout) ? saved.previewLayout : DEFAULTS.previewLayout,
       splitSide: clamp(saved.splitSide, .15, .85, DEFAULTS.splitSide),
       splitBelow: clamp(saved.splitBelow, .15, .85, DEFAULTS.splitBelow),
-      clickAdvance: typeof saved.clickAdvance === 'boolean' ? saved.clickAdvance : DEFAULTS.clickAdvance
+      clickAdvance: typeof saved.clickAdvance === 'boolean' ? saved.clickAdvance : DEFAULTS.clickAdvance,
+      tabIndents: typeof saved.tabIndents === 'boolean' ? saved.tabIndents : DEFAULTS.tabIndents
     };
   }
   function savePrefs(prefs) { store(KEY_PREFS, JSON.stringify(prefs)); }
@@ -5740,6 +5772,8 @@ window.ModernSlidesEditor = (() => {
       </span>
       <label class="sr-only" for="theme-select">Theme</label>
       <select id="theme-select" title="Slide theme" aria-label="Slide theme"></select>
+      <label class="sr-only" for="palette-select">Colour palette</label>
+      <select id="palette-select" title="Colour palette" aria-label="Colour palette"></select>
       <span class="toolbar-spacer"></span>
       <button id="save-deck" type="button" title="Save deck (Cmd/Ctrl+S)" aria-label="Save deck"><i class="fa-solid fa-floppy-disk"></i></button>
       <button id="deck-menu-button" class="menu-button" type="button" data-menu="deck-menu" aria-haspopup="menu" aria-expanded="false" title="Deck: new, open, restore, export, settings" aria-label="Deck menu"><i class="fa-solid fa-folder"></i><i class="fa-solid fa-caret-down caret"></i></button>
@@ -5788,6 +5822,7 @@ window.ModernSlidesEditor = (() => {
   <label class="menu-check"><input id="editor-show-notes" type="checkbox"><span>Speaker notes and print annotations</span></label>
   <label class="menu-check"><input id="editor-show-rail" type="checkbox"><span>Slide thumbnails</span></label>
   <label class="menu-check"><input id="editor-highlight" type="checkbox"><span>Syntax colours</span></label>
+  <label class="menu-check" title="On: Tab indents the slide text and Shift+Tab removes an indent. Off: Tab moves to the next control, as on the rest of the page."><input id="editor-tab-indents" type="checkbox"><span>Tab key indents slide text</span></label>
   <label class="menu-check" title="Presenting: a mouse or trackpad click on the right or left half moves forward or back. Keys, clickers and touch taps always work."><input id="editor-click-advance" type="checkbox"><span>Click the slide to advance</span></label>
   <button id="editor-settings-reset" class="menu-item" type="button"><i class="fa-solid fa-rotate"></i><span>Reset editor settings</span></button>
 </div>
@@ -6119,6 +6154,22 @@ const THEME_IDS = [
   ['banner', "Banner"],
   ['singapore', "Singapore (Beamer)"]
 ];
+/* Colour palettes (deck.meta.palette; see "Colour palettes" in the styles). 'default' keeps the
+   theme's own colours and is stored as no palette at all, so decks without one stay unchanged. */
+const PALETTE_IDS = [
+  ['default', "Default colours"],
+  ['oxford', "Oxford navy"],
+  ['aicher', "Aicher blue"],
+  ['isotype', "Isotype red"],
+  ['calgary', "Calgary purple"],
+  ['cooper', "Cooper teal"],
+  ['pavilion', "Pavilion green"],
+  ['modern-dark', "Modern dark"],
+  ['fili', "Fili gold (dark)"]
+];
+const DEFAULT_PALETTE = 'default';
+/* Themes whose colours all come from variables mapped under .has-palette; others keep their own. */
+const PALETTE_THEMES = new Set(['singapore']);
 /* Math fonts that differ from MathJax's default, by theme. MathJax fixes its output font at startup,
    so loadMathJax() reads this once, for the first deck's theme; a later theme switch takes effect on
    reload. Every theme currently uses the default (e.g. {singapore: 'mathjax-fira'} would change one). */
@@ -6144,7 +6195,7 @@ const DECK_SCHEMA = {
     meta: {
       type:'object', additionalProperties:false, required:['title','theme','pageNumbers'],
       properties:{
-        title:{type:'string'}, theme:{type:'string'}, author:{type:'string'}, date:{type:'string'},
+        title:{type:'string'}, theme:{type:'string'}, palette:{type:'string'}, author:{type:'string'}, date:{type:'string'},
         footer:{type:'string'}, pageNumbers:{type:'boolean'}, logo:{type:['string','null']}
       }
     },
@@ -6215,7 +6266,7 @@ function validateDeckInput(deck) {
   collectUnknownKeys(deck, new Set(['format','version','meta','assets','slides']), 'deck', errors);
   if (deck?.format !== FORMAT) errors.push(`deck.format must be "${FORMAT}".`);
   if (Number(deck?.version) !== VERSION) errors.push(`deck.version must be ${VERSION}.`);
-  collectUnknownKeys(deck?.meta, new Set(['title','theme','author','date','footer','pageNumbers','logo']), 'deck.meta', errors);
+  collectUnknownKeys(deck?.meta, new Set(['title','theme','palette','author','date','footer','pageNumbers','logo']), 'deck.meta', errors);
   if (deck?.assets != null && (typeof deck.assets !== 'object' || Array.isArray(deck.assets))) errors.push('deck.assets must be an object.');
   else Object.entries(deck?.assets || {}).forEach(([id,asset]) => collectUnknownKeys(asset, new Set(['name','type','data']), `deck.assets.${id}`, errors));
   if (!Array.isArray(deck?.slides) || !deck.slides.length) errors.push('deck.slides must be a non-empty array.');
@@ -6580,6 +6631,7 @@ function normalizeDeck(input) {
   if (!deck.slides.length) deck.slides.push(freshSlide('New slide', 'slide1'));
   deck.meta.title = String(deck.meta.title || 'Untitled Presentation');
   deck.meta.theme = THEME_IDS.some(([id]) => id === deck.meta.theme) ? deck.meta.theme : DEFAULT_THEME;
+  if (deck.meta.palette === DEFAULT_PALETTE || !PALETTE_IDS.some(([id]) => id === deck.meta.palette)) delete deck.meta.palette;
   deck.meta.author = String(deck.meta.author ?? '');
   deck.meta.date = String(deck.meta.date ?? '');
   deck.meta.footer = String(deck.meta.footer ?? '');
@@ -8061,9 +8113,14 @@ function markInlineRoles(root) {
     if (/^[\s,;.]*$/.test(rest)) em.classList.add('ms-cite-line');
   });
 }
+/* The deck's palette when its theme takes palettes, else null (the theme's own colours). */
+function activePalette(meta = state.deck.meta) {
+  return meta.palette && PALETTE_THEMES.has(meta.theme) ? meta.palette : null;
+}
 function buildCanonicalFrame(slide, doc = document) {
   const frame = doc.createElement('article');
-  frame.className = `slide-frame theme-${state.deck.meta.theme} layout-${inferredLayout(slide)}`;
+  const palette = activePalette();
+  frame.className = `slide-frame theme-${state.deck.meta.theme}${palette ? ` palette-${palette} has-palette` : ''} layout-${inferredLayout(slide)}`;
   frame.dataset.slideId = slide.id;
   frame.dataset.steps = String(slide.steps || 0);
   if (slide.hidden) frame.dataset.hidden = 'true';
@@ -8515,6 +8572,11 @@ function updateToolbarState() {
   const slide = currentSlide();
   $('delete-slide').disabled = state.deck.slides.length <= 1;
   $('theme-select').value = state.deck.meta.theme;
+  /* A theme without palettes shows its own colours; the deck keeps its palette for themes with them. */
+  const palettes = $('palette-select'), takesPalette = PALETTE_THEMES.has(state.deck.meta.theme);
+  palettes.disabled = !takesPalette;
+  palettes.value = activePalette() || DEFAULT_PALETTE;
+  palettes.title = takesPalette ? 'Colour palette' : 'This theme keeps its own colours (palettes: Singapore)';
   $('toggle-page-numbers').setAttribute('aria-pressed', String(!!state.deck.meta.pageNumbers));
   $('toggle-hidden').innerHTML = slide?.hidden ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
   updateHistoryButtons();
@@ -8615,6 +8677,15 @@ function setTheme(theme) {
   state.deck.meta.theme = theme;
   autosave();
   scheduleRender('theme');
+}
+function setPalette(palette) {
+  if (!PALETTE_IDS.some(([id]) => id === palette) || palette === (state.deck.meta.palette || DEFAULT_PALETTE)) return;
+  if (state.editMode) commitEditor({record:true});
+  pushUndo();
+  if (palette === DEFAULT_PALETTE) delete state.deck.meta.palette;
+  else state.deck.meta.palette = palette;
+  autosave();
+  scheduleRender('palette');
 }
 function togglePageNumbers() {
   if (state.editMode) commitEditor({record:true});
@@ -10413,6 +10484,40 @@ function alignSelection(align) {
   textarea.dispatchEvent(new Event('input', {bubbles:true}));
   textarea.focus();
 }
+/* Tab in the slide text, as in a code editor. With the cursor in a line (or a selection inside one) Tab
+   inserts a tab, which the box shows two columns wide and the parser reads as two spaces; with several
+   lines selected it indents each of them. Shift+Tab removes one indent (a tab or up to two spaces) from
+   the current or selected lines. insertText keeps each change in the browser's own undo (Cmd/Ctrl+Z).
+   The "Tab key indents slide text" editor setting, when off, leaves Tab to move between controls. */
+function replaceEditorText(textarea, text, start, end) {
+  textarea.setSelectionRange(start, end);
+  let inserted = false;
+  try { inserted = document.execCommand('insertText', false, text); } catch {}
+  if (!inserted) {
+    textarea.setRangeText(text, start, end, 'end');
+    textarea.dispatchEvent(new Event('input', {bubbles:true}));
+  }
+}
+function indentEditorText(textarea, outdent = false) {
+  const value = textarea.value;
+  const start = textarea.selectionStart, end = textarea.selectionEnd;
+  if (!outdent && !value.slice(start, end).includes('\n')) { replaceEditorText(textarea, '\t', start, end); return; }
+  /* Whole lines: from the start of the first selected line to the end of the last one, leaving out a
+     last line the selection only reaches the start of. */
+  const blockStart = start > 0 ? value.lastIndexOf('\n', start - 1) + 1 : 0;
+  const lastChar = end > start && value[end - 1] === '\n' ? end - 1 : end;
+  const lineBreak = value.indexOf('\n', lastChar);
+  const blockEnd = lineBreak < 0 ? value.length : lineBreak;
+  const lines = value.slice(blockStart, blockEnd).split('\n');
+  const changed = lines.map(line => outdent ? line.replace(/^(?:\t| {1,2})/, '') : (line.trim() ? `\t${line}` : line));
+  const replacement = changed.join('\n');
+  if (replacement === lines.join('\n')) return;
+  replaceEditorText(textarea, replacement, blockStart, blockEnd);
+  const firstShift = changed[0].length - lines[0].length;
+  const newStart = start === blockStart && start !== end ? blockStart : Math.max(blockStart, start + firstShift);
+  const newEnd = Math.max(newStart, end + replacement.length - (blockEnd - blockStart));
+  textarea.setSelectionRange(newStart, newEnd);
+}
 function expandSingleLetterShortcut(event) {
   if (event.key !== ':') return;
   const textarea = event.currentTarget;
@@ -10514,6 +10619,7 @@ function setupEvents() {
   $('undo').addEventListener('click', undo);
   $('redo').addEventListener('click', redo);
   $('theme-select').addEventListener('change', event => setTheme(event.target.value));
+  $('palette-select').addEventListener('change', event => setPalette(event.target.value));
   $('toggle-page-numbers').addEventListener('click', togglePageNumbers);
   $('deck-settings').addEventListener('click', openSettings);
   $('save-settings').addEventListener('click', saveSettings);
@@ -10574,6 +10680,11 @@ function setupEvents() {
     if (bold) {
       event.preventDefault();
       wrapSelection('**');
+      return;
+    }
+    if (event.key === 'Tab' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.isComposing && editorPrefs.readPrefs().tabIndents) {
+      event.preventDefault();
+      indentEditorText(event.currentTarget, event.shiftKey);
       return;
     }
     expandSingleLetterShortcut(event);
@@ -10830,6 +10941,11 @@ function populateThemes() {
     const option = document.createElement('option');
     option.value = id; option.textContent = label; select.appendChild(option);
   });
+  const palettes = $('palette-select');
+  PALETTE_IDS.forEach(([id, label]) => {
+    const option = document.createElement('option');
+    option.value = id; option.textContent = label; palettes.appendChild(option);
+  });
 }
 /* Editor themes and preferences colour and lay out the editor around the slides, never the slides.
    They are per-browser preferences (not deck data), applied early by window.ModernSlidesEditor;
@@ -10873,6 +10989,7 @@ function syncEditorSettings(prefs = editorPrefs.readPrefs()) {
   $('editor-show-rail').checked = prefs.rail;
   $('editor-highlight').checked = prefs.highlight;
   $('editor-click-advance').checked = prefs.clickAdvance;
+  $('editor-tab-indents').checked = prefs.tabIndents;
   $('toggle-notes').setAttribute('aria-pressed', String(prefs.notes));
   $('editor-preview-mode').value = prefs.preview;
   $('toggle-preview').setAttribute('aria-pressed', String(prefs.preview !== 'off'));
@@ -10887,6 +11004,7 @@ function setupEditorSettings() {
   $('editor-show-rail').addEventListener('change', event => updateEditorPrefs({rail: event.target.checked}));
   $('editor-highlight').addEventListener('change', event => updateEditorPrefs({highlight: event.target.checked}));
   $('editor-click-advance').addEventListener('change', event => updateEditorPrefs({clickAdvance: event.target.checked}));
+  $('editor-tab-indents').addEventListener('change', event => updateEditorPrefs({tabIndents: event.target.checked}));
   $('toggle-notes').addEventListener('click', () => updateEditorPrefs({notes: !editorPrefs.readPrefs().notes}));
   $('editor-preview-mode').addEventListener('change', event => updateEditorPrefs(event.target.value === 'off' ? {preview: 'off'} : {preview: event.target.value, previewLayout: event.target.value}));
   $('toggle-preview').addEventListener('click', () => {
@@ -11083,7 +11201,7 @@ const relativeLuminance = rgb => rgb.map(v => { v /= 255; return v <= .03928 ? v
 const contrastRatio = (a, b) => { const [x, y] = [relativeLuminance(a), relativeLuminance(b)].sort((p, q) => q - p); return (x + .05) / (y + .05); };
 function readableEditorColor(color) {
   const frame = document.querySelector('#render-bank .slide-frame');
-  const key = `${document.documentElement.dataset.editorTheme}|${state.deck?.meta.theme}|${color}`;
+  const key = `${document.documentElement.dataset.editorTheme}|${state.deck?.meta.theme}|${state.deck?.meta.palette}|${color}`;
   if (readableColorCache.has(key)) return readableColorCache.get(key);
   let resolved = color;
   const themeVar = color.match(/^var\((--[\w-]+)\)$/);
