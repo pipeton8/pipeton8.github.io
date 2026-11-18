@@ -5637,7 +5637,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 70d09e3649a1 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 53f6b3c25c97 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -8083,9 +8083,10 @@ function frameNumberInfo(slide) {
    Parts (Beamer's \part) split the deck, and the bar shows only the sections of the slide's own part.
    A part starts at a slide marked as a part start (slide.part), right after the final slide (so the
    appendix has sections of its own), and at a "Header: Appendix" slide. A slide before its part's
-   first section (a title page, say) gets no bar. Each section is a column with one dot per visible
-   slide, except center-layout slides (title and section pages), which get none; the section name
-   links to the section's first visible slide (its section page, if any) and each dot to its slide. */
+   first section (a title page, say) gets no bar, and so does every center-layout slide (title and
+   section pages), which also gets no dot; it still belongs to its section. Each section is a
+   column with one dot per visible slide; the section name links to the section's first visible
+   slide (its section page, if any) and each dot to its slide. */
 function navbarModel(deck) {
   const partOf = new Map(), sectionOf = new Map();
   let part = null, section = null, afterFinal = false;
@@ -8107,7 +8108,7 @@ function navbarModel(deck) {
 function buildNavbar(slide, doc = document) {
   const {partOf, sectionOf} = navbarModel(state.deck);
   const mine = sectionOf.get(slide.id);
-  if (!mine) return null;
+  if (!mine || inferredLayout(slide) === 'center') return null;
   const sections = partOf.get(slide.id).sections.filter(section => section.slides.length);
   const link = (target, className, text) => {
     const a = doc.createElement('a');
