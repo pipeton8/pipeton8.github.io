@@ -646,7 +646,10 @@ button:disabled { cursor: not-allowed; opacity: .42; }
    buildNavbar). Inline roles marked by markInlineRoles: strong.ms-button is a grey Beamer button,
    .ms-button-right one pushed to the right margin, em.ms-cite-line a faded citation line, and
    colours come from the general [text]{color} syntax. Every colour goes through a variable, so a
-   colour palette (.has-palette, below the themes) can recolour the theme. */
+   colour palette (.has-palette, below the themes) can recolour the theme. The shaded headline band
+   is on every frame, as in Beamer, so a title page or appendix slide is not left bare; a frame
+   without a navigation bar keeps its full height, and its title sits in the band. The title page
+   and the closing frame get a deeper band and a matching one at the bottom edge. */
 .theme-singapore {
   --base: 2.425cqw; --bg: #ffffff; --text: #000000; --accent: #1f8a1c; --accent-2: #8c8c8c; --line: #000000;
   --body-font: "Fira Sans", Helvetica, sans-serif; --display-font: "Fira Sans", Helvetica, sans-serif; --sans-font: "Fira Sans", Helvetica, sans-serif;
@@ -658,6 +661,8 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   --col-gap: 1.2cqw; --table-scale: .8; --table-border: 0; --table-header-bg: transparent; --table-header-color: var(--text); --table-row-alt: transparent;
   --footer-color: var(--accent-2); --progress-bg: var(--accent-2);
   --nav-shade: #c6c6c6; --nav-shade-2: #ececec; --nav-text: #a3a3a3; --nav-current: #1e1e1e; --button-bg: #858585; --button-text: #fff;
+  --title-rule: var(--accent-2);
+  --stage-decoration: linear-gradient(180deg, var(--nav-shade) 0, var(--nav-shade-2) 3.6cqw, var(--bg) 10cqw);
 }
 .theme-singapore:not(:has(> .slide-navbar)) { --slide-pad-top: 2.2cqw; }
 .theme-singapore.layout-data, .theme-singapore.layout-top { --flow-width: 100%; --flow-justify: flex-start; }
@@ -669,8 +674,8 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .theme-singapore .slide-title + * { margin-top: auto; }
 .theme-singapore .slide-flow > :last-child { margin-bottom: auto; }
 .theme-singapore .slide-flow > .block-image:last-child, .theme-singapore .slide-flow > .block-columns:last-child { margin-bottom: 0; }
-/* Navigation bar on a light grey shaded band. */
-.theme-singapore:has(> .slide-navbar) { --stage-decoration: linear-gradient(180deg, var(--nav-shade) 0, var(--nav-shade-2) 3.6cqw, var(--bg) 10cqw); }
+/* Navigation bar on the shaded band. A full-frame slide keeps the band only under a bar. */
+.theme-singapore.layout-full:not(:has(> .slide-navbar)) { --stage-decoration: none; }
 .theme-singapore .slide-navbar { height: 4cqw; padding: .45cqw 1.8cqw 0; background: transparent; color: var(--nav-text); font-weight: 400; line-height: 1.3; }
 .theme-singapore .slide-navbar a { color: inherit; }
 .theme-singapore .nav-section.current { color: var(--nav-current); }
@@ -722,17 +727,26 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .theme-singapore .block-table th { font-weight: 400; text-align: center; }
 .theme-singapore .block-table tr:has(+ tr > td) > th { border-bottom: max(1px, .06cqw) solid var(--text); padding-bottom: .4em; }
 .theme-singapore .block-table tr:has(> th) + tr:has(> td) > * { padding-top: .4em; }
-/* Title page (the center layout) and closing frame (statement). */
-.theme-singapore.layout-center { --slide-pad-top: 2cqw; --flow-width: 100%; }
+/* Title page (the center layout; with a lone title, a section page) and closing frame (statement).
+   Both get a deeper band at the top and a matching one at the bottom. On the title page every line is centred, a short rule sets the title off
+   from what follows, and small text is a quiet grey line (a subtitle, a date). The closing frame's
+   big text takes the frame-title colour. */
+.theme-singapore.layout-center, .theme-singapore.layout-statement {
+  --stage-decoration: linear-gradient(0deg, var(--nav-shade) 0, var(--nav-shade-2) 4cqw, transparent 16cqw), linear-gradient(180deg, var(--nav-shade) 0, var(--nav-shade-2) 8cqw, var(--bg) 24cqw);
+}
+.theme-singapore.layout-center { --flow-width: 100%; }
 .theme-singapore.layout-center .slide-flow { justify-content: center; }
 .theme-singapore.layout-center .slide-title { --title-scale: 2.55; text-align: center; }
+.theme-singapore.layout-center .slide-title::after { content: ""; display: block; width: 12cqw; height: max(1px, .14cqw); margin: 1.4cqw auto .5cqw; background: var(--title-rule); }
 .theme-singapore.layout-center .slide-title + * { margin-top: 0; }
 .theme-singapore.layout-center .slide-flow > :last-child { margin-bottom: 0; }
+.theme-singapore.layout-center .block-text { text-align: center; }
 .theme-singapore.layout-center .block-text:not(.size-small) { font-variant-caps: small-caps; margin: .45em 0; }
-.theme-singapore.layout-center .block-text.size-small { --text-size: .9; font-weight: 700; margin-top: .2em; }
+.theme-singapore.layout-center .block-text.size-small { --text-size: .9; color: var(--accent-2); margin-top: .2em; }
 .theme-singapore.layout-statement { --big-scale: 2.5; --flow-width: 100%; }
 .theme-singapore.layout-statement .slide-flow { justify-content: center; padding-bottom: 6cqw; }
 .theme-singapore.layout-statement .slide-flow > * { margin-top: auto; margin-bottom: auto; }
+.theme-singapore.layout-statement .block-text.size-big { color: var(--title-color); }
 .theme-tufte {
   --bg: #fffff8; --text: #111; --accent: #111; --accent-2: #595959; --line: #dddcd3;
   --body-font: "Source Serif 4", Georgia, serif; --display-font: "Source Serif 4", Georgia, serif; --sans-font: Lato, Arial, sans-serif;
@@ -4921,6 +4935,7 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 /* Singapore: the structure colour takes the frame titles, bullets, navigation band and buttons. */
 .theme-singapore.has-palette {
   --title-color: var(--structure);
+  --title-rule: var(--structure);
   --nav-shade: color-mix(in srgb, var(--structure) 28%, var(--bg));
   --nav-shade-2: color-mix(in srgb, var(--structure) 8%, var(--bg));
   --nav-text: color-mix(in srgb, var(--structure) 45%, var(--bg));
@@ -5092,7 +5107,8 @@ html[data-rail="hidden"] #thumb-rail { display: none; }
 }
 .thumb-controls button:hover:not(:disabled) { background: #fff; border-color: var(--ui-selected); }
 .thumb-hidden-label,
-.thumb-final-label {
+.thumb-final-label,
+.thumb-part-label {
   position: absolute;
   z-index: 20;
   right: 4px;
@@ -5104,6 +5120,8 @@ html[data-rail="hidden"] #thumb-rail { display: none; }
   font: 700 9px/1 var(--ui-font);
 }
 .thumb-final-label { right: auto; left: 4px; background: #1d4ed8; }
+.thumb-part-label { right: auto; left: 4px; background: #0f766e; }
+.thumb-part-label + .thumb-final-label { left: 42px; }
 
 #editor-main {
   min-width: 0;
@@ -5619,7 +5637,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 837697f02f59 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides d37615869fda by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5808,6 +5826,7 @@ window.ModernSlidesEditor = (() => {
   <button id="deck-settings" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-gear"></i><span>Deck settings…</span><kbd>title, author, footer</kbd></button>
   <button id="toggle-page-numbers" class="menu-item" type="button" role="menuitemcheckbox" aria-pressed="true"><i class="fa-solid fa-arrow-down-1-9"></i><span>Slide numbers</span></button>
   <button id="toggle-final-slide" class="menu-item" type="button" role="menuitemcheckbox" aria-pressed="false" title="Slide numbers count up to this slide (e.g. a thank-you slide); the slides after it are an appendix, numbered on their own from 1"><i class="fa-solid fa-flag-checkered"></i><span>This is the final slide</span></button>
+  <button id="toggle-part-start" class="menu-item" type="button" role="menuitemcheckbox" aria-pressed="false" title="The navigation bar (Singapore) shows only the sections from this slide to the next part, as Beamer's \part does; the slides after the final slide are a part of their own"><i class="fa-solid fa-bookmark"></i><span>This slide starts a part</span></button>
   <button id="manage-assets" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-images"></i><span>Images in this deck…</span></button>
   <button id="view-json" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-code"></i><span>View JSON…</span></button>
 </div>
@@ -6210,7 +6229,7 @@ const DECK_SCHEMA = {
     slide:{
       type:'object',additionalProperties:false,required:['id','hidden','layout','blocks'],
       properties:{
-        id:{type:'string'},hidden:{type:'boolean'},final:{type:'boolean'},layout:{enum:['auto','top','center','statement','data','full']},
+        id:{type:'string'},hidden:{type:'boolean'},final:{type:'boolean'},part:{type:'boolean'},layout:{enum:['auto','top','center','statement','data','full']},
         background:{anyOf:[{type:'null'},{type:'object',additionalProperties:false,required:['src','mode'],properties:{src:{type:'string'},mode:{enum:['tint','full']}}}]},
         header:{type:'string'},aside:{type:'string'},speaker:{type:'string'},print:{type:'string'},steps:{type:'integer',minimum:0},
         blocks:{type:'array',items:{$ref:'#/$defs/block'}}
@@ -6275,7 +6294,7 @@ function validateDeckInput(deck) {
   if (!Array.isArray(deck?.slides) || !deck.slides.length) errors.push('deck.slides must be a non-empty array.');
   else deck.slides.forEach((slide,index) => {
     const path = `deck.slides[${index}]`;
-    collectUnknownKeys(slide, new Set(['id','hidden','final','layout','background','header','aside','speaker','print','steps','blocks']), path, errors);
+    collectUnknownKeys(slide, new Set(['id','hidden','final','part','layout','background','header','aside','speaker','print','steps','blocks']), path, errors);
     if (slide?.background != null) collectUnknownKeys(slide.background, new Set(['src','mode']), `${path}.background`, errors);
     if (!Array.isArray(slide?.blocks)) errors.push(`${path}.blocks must be an array.`);
     else slide.blocks.forEach((block,blockIndex) => validateBlockInput(block, `${path}.blocks[${blockIndex}]`, errors));
@@ -6622,6 +6641,7 @@ function normalizeDeck(input) {
       id: slide?.id == null ? '' : String(slide.id).trim(),
       hidden: !!slide?.hidden,
       ...(slide?.final ? {final: true} : {}),
+      ...(slide?.part ? {part: true} : {}),
       layout: LAYOUTS.has(slide?.layout) ? slide.layout : 'auto',
       background: slide?.background?.src ? {src:String(slide.background.src), mode: slide.background.mode === 'full' ? 'full' : 'tint'} : null,
       header: String(slide?.header ?? ''),
@@ -8058,29 +8078,34 @@ function frameNumberInfo(slide) {
 /* Navigation bar for NAVBAR_THEMES, computed from the whole deck whenever a slide is rendered. In
    those themes a slide's Header names its section instead of being printed:
      Header: Theory     this slide starts the section "Theory" (Beamer's \section)
-     Header: Appendix   no navigation bar from this slide on (Beamer's \appendix)
+     Header: Appendix   this slide starts a new part with no section yet (Beamer's \appendix)
      (no Header)        same section as the previous slide, so a new slide needs no header
-   Slides before the first section (a title page) get no bar. Each section is a column with one dot
-   per visible slide; the section name and each dot link to their slide. */
+   Parts (Beamer's \part) split the deck, and the bar shows only the sections of the slide's own part.
+   A part starts at a slide marked as a part start (slide.part), right after the final slide (so the
+   appendix has sections of its own), and at a "Header: Appendix" slide. A slide before its part's
+   first section (a title page, say) gets no bar. Each section is a column with one dot per visible
+   slide; the section name and each dot link to their slide. */
 function navbarModel(deck) {
-  const sections = [], sectionOf = new Map();
-  let current = null;
+  const partOf = new Map(), sectionOf = new Map();
+  let part = null, section = null, afterFinal = false;
   deck.slides.forEach(slide => {
     const name = String(slide.header || '').trim();
-    if (name) {
-      if (/^appendix$/i.test(name)) current = null;
-      else if (!current || current.name !== name) { current = {name, slides: []}; sections.push(current); }
-    }
-    if (!current) return;
-    sectionOf.set(slide.id, current);
-    if (!slide.hidden) current.slides.push(slide);
+    const appendix = /^appendix$/i.test(name);
+    if (!part || slide.part || afterFinal || appendix) { part = {sections: []}; section = null; }
+    afterFinal = !!slide.final;
+    if (name && !appendix && section?.name !== name) { section = {name, slides: []}; part.sections.push(section); }
+    partOf.set(slide.id, part);
+    if (!section) return;
+    sectionOf.set(slide.id, section);
+    if (!slide.hidden) section.slides.push(slide);
   });
-  return {sections: sections.filter(section => section.slides.length), sectionOf};
+  return {partOf, sectionOf};
 }
 function buildNavbar(slide, doc = document) {
-  const {sections, sectionOf} = navbarModel(state.deck);
+  const {partOf, sectionOf} = navbarModel(state.deck);
   const mine = sectionOf.get(slide.id);
   if (!mine) return null;
+  const sections = partOf.get(slide.id).sections.filter(section => section.slides.length);
   const link = (target, className, text) => {
     const a = doc.createElement('a');
     a.className = `ms-link-internal ${className}`;
@@ -8560,6 +8585,7 @@ function buildThumbnailElement(slide, index) {
   const del = document.createElement('button'); del.type='button'; del.title='Delete slide'; del.setAttribute('aria-label','Delete slide'); del.dataset.action='delete'; del.disabled=state.deck.slides.length<=1; del.innerHTML='<i class="fa-solid fa-minus"></i>';
   controls.append(add,del); canvas.appendChild(controls);
   if (slide.hidden) { const label=document.createElement('span'); label.className='thumb-hidden-label'; label.textContent='HIDDEN'; canvas.appendChild(label); }
+  if (slide.part) { const label=document.createElement('span'); label.className='thumb-part-label'; label.textContent='PART'; canvas.appendChild(label); }
   if (slide.final) { const label=document.createElement('span'); label.className='thumb-final-label'; label.textContent='FINAL'; canvas.appendChild(label); }
   wrapper.appendChild(canvas);
   return wrapper;
@@ -8594,6 +8620,7 @@ function updateToolbarState() {
   palettes.title = takesPalette ? 'Colour palette' : 'This theme keeps its own colours (palettes: Singapore)';
   $('toggle-page-numbers').setAttribute('aria-pressed', String(!!state.deck.meta.pageNumbers));
   $('toggle-final-slide').setAttribute('aria-pressed', String(!!slide?.final));
+  $('toggle-part-start').setAttribute('aria-pressed', String(!!slide?.part));
   $('toggle-hidden').innerHTML = slide?.hidden ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
   updateHistoryButtons();
 }
@@ -8652,6 +8679,7 @@ function duplicateSlide(id = state.currentSlideId) {
   const copy = deepClone(state.deck.slides[index]);
   copy.id = nextSlideId(state.deck);
   delete copy.final;
+  delete copy.part;
 
   state.deck.slides.splice(index + 1, 0, copy);
   state.currentSlideId = copy.id;
@@ -8727,6 +8755,20 @@ function toggleFinalSlide() {
   const message = wasFinal ? 'Slide numbers count every slide again'
     : `Slide numbers end at ${slide.id}${appendix ? ` · ${appendix} later slide${appendix === 1 ? '' : 's'} numbered as the appendix` : ' (no slides after it)'}`;
   scheduleRender('final');
+  state.autosaveChain.then(() => setStatus(message, 'saved'));
+}
+/* Mark the current slide as the start of a part (Beamer's \part), or remove the mark. Any number of
+   slides may carry it; in NAVBAR_THEMES the navigation bar shows only the current part's sections. */
+function togglePartStart() {
+  if (state.editMode) commitEditor({record:true});
+  const slide = currentSlide();
+  if (!slide) return;
+  pushUndo();
+  if (slide.part) delete slide.part; else slide.part = true;
+  autosave();
+  const where = NAVBAR_THEMES.has(state.deck.meta.theme) ? 'the navigation bar' : 'the Singapore theme\'s navigation bar';
+  const message = slide.part ? `A part starts at ${slide.id}: ${where} shows only its sections` : `${slide.id} no longer starts a part`;
+  scheduleRender('part');
   state.autosaveChain.then(() => setStatus(message, 'saved'));
 }
 function ensurePresentableCurrent() {
@@ -10657,6 +10699,7 @@ function setupEvents() {
   $('palette-select').addEventListener('change', event => setPalette(event.target.value));
   $('toggle-page-numbers').addEventListener('click', togglePageNumbers);
   $('toggle-final-slide').addEventListener('click', toggleFinalSlide);
+  $('toggle-part-start').addEventListener('click', togglePartStart);
   $('deck-settings').addEventListener('click', openSettings);
   $('save-settings').addEventListener('click', saveSettings);
   $('help-button').addEventListener('click', () => openModal('help-modal'));
