@@ -5360,7 +5360,7 @@ body { font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
 @media (max-width: 900px) { .s-slides { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .s-slides { grid-template-columns: 1fr; } .s-bar-inner h1 { flex-basis: 100%; } #s-select { flex: 1; min-width: 0; } }
 </style>
-<!-- Deployed from ModernSlides d37615869fda by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 70d09e3649a1 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 </head>
@@ -7093,7 +7093,8 @@ function frameNumberInfo(slide) {
    A part starts at a slide marked as a part start (slide.part), right after the final slide (so the
    appendix has sections of its own), and at a "Header: Appendix" slide. A slide before its part's
    first section (a title page, say) gets no bar. Each section is a column with one dot per visible
-   slide; the section name and each dot link to their slide. */
+   slide, except center-layout slides (title and section pages), which get none; the section name
+   links to the section's first visible slide (its section page, if any) and each dot to its slide. */
 function navbarModel(deck) {
   const partOf = new Map(), sectionOf = new Map();
   let part = null, section = null, afterFinal = false;
@@ -7102,11 +7103,13 @@ function navbarModel(deck) {
     const appendix = /^appendix$/i.test(name);
     if (!part || slide.part || afterFinal || appendix) { part = {sections: []}; section = null; }
     afterFinal = !!slide.final;
-    if (name && !appendix && section?.name !== name) { section = {name, slides: []}; part.sections.push(section); }
+    if (name && !appendix && section?.name !== name) { section = {name, slides: [], dots: []}; part.sections.push(section); }
     partOf.set(slide.id, part);
     if (!section) return;
     sectionOf.set(slide.id, section);
-    if (!slide.hidden) section.slides.push(slide);
+    if (slide.hidden) return;
+    section.slides.push(slide);
+    if (inferredLayout(slide) !== 'center') section.dots.push(slide);
   });
   return {partOf, sectionOf};
 }
@@ -7131,7 +7134,7 @@ function buildNavbar(slide, doc = document) {
     column.appendChild(link(section.slides[0], 'nav-name', section.name));
     const dots = doc.createElement('div');
     dots.className = 'nav-dots';
-    section.slides.forEach(item => dots.appendChild(link(item, `nav-dot${item.id === slide.id ? ' current' : ''}`)));
+    section.dots.forEach(item => dots.appendChild(link(item, `nav-dot${item.id === slide.id ? ' current' : ''}`)));
     column.appendChild(dots);
     bar.appendChild(column);
   });
