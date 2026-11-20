@@ -5596,8 +5596,14 @@ body.dragging-file #drop-overlay { display:grid; }
 
 /* ---------- Print ----------
    Slides print at their native 1600x900 CSS pixels - exactly the layout that was
-   fitted on screen - on pages sized in pixels with US Letter landscape proportions.
-   The printer scales the whole page, so line breaks cannot differ from the screen. */
+   fitted on screen - scaled to the page. Slides and reveal steps go on 16:9 pages
+   that are exactly the slide (#print-root.print-wide): 1054.72x593.28px, about
+   10.99x6.18in. Chrome rounds page sizes up to 1/150in, so a 16:9 page exactly 11in
+   wide would get a white hairline at the bottom; this one is on that grid, and still
+   fits Letter landscape paper in a browser that ignores the @page size. Or they go on
+   US Letter landscape pages, 11in wide with the slide centred; annotations always do.
+   buildPrintPages() sets the matching @page size. The printer scales the whole page,
+   so line breaks cannot differ from the screen. */
 #print-root { display: none; }
 #print-root.print-preparing {
   display: block; position: fixed; left: -20000px; top: 0;
@@ -5619,6 +5625,9 @@ body.dragging-file #drop-overlay { display:grid; }
   transform: scale(.66) !important; transform-origin: 0 0 !important;
   box-shadow: none !important;
 }
+#print-root.print-wide .print-page { width: 1054.72px; padding-top: 0; }
+#print-root.print-wide .print-slide-box { width: 1054.72px; height: 593.28px; }
+#print-root.print-wide .print-slide-box .slide-frame { transform: scale(.6592) !important; }
 .print-notes {
   width: 11in; height: 1.75in; overflow: hidden;
   padding: .12in .28in .14in; box-sizing: border-box;
@@ -5637,7 +5646,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 53f6b3c25c97 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 82aa4119828f by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5648,7 +5657,7 @@ window.ModernSlidesEditor = (() => {
   const root = document.documentElement;
   const THEMES = ['auto', 'light', 'dark', 'slate'];
   const KEY_THEME = 'modernslides.editorTheme', KEY_PREFS = 'modernslides.editorPrefs';
-  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true, preview: 'off', previewLayout: 'side', splitSide: .5, splitBelow: .5, clickAdvance: false, tabIndents: true};
+  const DEFAULTS = {textSize: 12, uiScale: 90, notes: false, rail: true, railWidth: 240, highlight: true, preview: 'off', previewLayout: 'side', splitSide: .5, splitBelow: .5, clickAdvance: false, tabIndents: true, printLetter: false};
   const clamp = (value, low, high, fallback) => Number.isFinite(Number(value)) ? Math.min(high, Math.max(low, Number(value))) : fallback;
   const store = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
   const load = key => { try { return localStorage.getItem(key); } catch { return null; } };
@@ -5675,7 +5684,8 @@ window.ModernSlidesEditor = (() => {
       splitSide: clamp(saved.splitSide, .15, .85, DEFAULTS.splitSide),
       splitBelow: clamp(saved.splitBelow, .15, .85, DEFAULTS.splitBelow),
       clickAdvance: typeof saved.clickAdvance === 'boolean' ? saved.clickAdvance : DEFAULTS.clickAdvance,
-      tabIndents: typeof saved.tabIndents === 'boolean' ? saved.tabIndents : DEFAULTS.tabIndents
+      tabIndents: typeof saved.tabIndents === 'boolean' ? saved.tabIndents : DEFAULTS.tabIndents,
+      printLetter: typeof saved.printLetter === 'boolean' ? saved.printLetter : DEFAULTS.printLetter
     };
   }
   function savePrefs(prefs) { store(KEY_PREFS, JSON.stringify(prefs)); }
@@ -5834,6 +5844,11 @@ window.ModernSlidesEditor = (() => {
   <button id="print-deck" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-print"></i><span>Print slides</span><kbd>P</kbd></button>
   <button id="print-progressive" class="menu-item" type="button" role="menuitem"><i class="fa-solid fa-layer-group"></i><span>Every reveal step</span><kbd>Shift+P</kbd></button>
   <button id="print-notes" class="menu-item" type="button" role="menuitem"><i class="fa-regular fa-note-sticky"></i><span>With print annotations</span><kbd>N</kbd></button>
+  <hr>
+  <button id="print-letter" class="menu-item" type="button" role="menuitemcheckbox" aria-pressed="false" title="Slides and reveal steps on US Letter pages, each slide centred between white bands, as for paper handouts. Off: every page is exactly the slide (16:9). Annotations always use Letter pages. Kept in this browser."><i class="fa-regular fa-file-lines"></i><span>Letter pages, for paper</span></button>
+  <hr id="export-pdf-rule" hidden>
+  <button id="export-pdf" class="menu-item" type="button" role="menuitem" hidden title="Save a PDF of the slides next to the deck file, without the print dialog (tools/serve-deck.mjs runs headless Chrome)"><i class="fa-solid fa-file-pdf"></i><span>Export PDF</span><kbd>deck.pdf</kbd></button>
+  <button id="export-pdf-steps" class="menu-item" type="button" role="menuitem" hidden title="Save a PDF with every reveal step on its own page next to the deck file, without the print dialog"><i class="fa-solid fa-file-pdf"></i><span>Export PDF of every reveal step</span><kbd>deck.steps.pdf</kbd></button>
 </div>
 <div id="view-menu" class="menu menu-settings" role="dialog" aria-label="Editor settings" hidden>
   <p class="menu-note">Kept in this browser; slides are not affected.</p>
@@ -9011,9 +9026,24 @@ function appendPrintPage(root, slide, step, withNotes, noteElements) {
   }
   root.appendChild(page);
 }
-function buildPrintPages(withNotes, {expandReveals = false} = {}) {
+/* Slides and reveal steps go on 16:9 pages, exactly the slide, unless `letter` (the Print menu's
+   "Letter pages" setting) asks for US Letter landscape with the slide centred; annotations always
+   use Letter pages, for the room under the slide. */
+function setPrintPageSize(wide) {
+  let style = document.getElementById('print-page-size');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'print-page-size';
+    document.head.appendChild(style);
+  }
+  style.textContent = `@page { size: ${wide ? '1054.72px 593.28px' : 'letter landscape'}; margin: 0; }`;
+}
+function buildPrintPages(withNotes, {expandReveals = false, letter = editorPrefs.readPrefs().printLetter} = {}) {
   const root = $('print-root');
   root.replaceChildren();
+  const wide = !withNotes && !letter;
+  root.classList.toggle('print-wide', wide);
+  setPrintPageSize(wide);
   const noteElements = [];
   visibleSlides().forEach(slide => {
     const finalStep = Math.max(0, Number(slide.steps) || 0);
@@ -9027,18 +9057,25 @@ function buildPrintPages(withNotes, {expandReveals = false} = {}) {
   });
   return noteElements;
 }
-async function preparePrint(withNotes, {expandReveals = false} = {}) {
-  if (state.editMode) commitEditor({record:true});
+/* Builds the print pages and waits until they can be printed: annotations typeset, images loaded,
+   annotations fitted. tools/export-pdf.mjs calls it (through ModernSlidesAPI.printPages) with
+   commit false, so that its page never changes the deck. */
+async function buildPrint(withNotes, {expandReveals = false, letter, commit = true} = {}) {
+  if (state.editMode && commit) commitEditor({record:true});
   await scheduleRender('print');
   const root = $('print-root');
   root.classList.add('print-preparing');
-  const noteElements = buildPrintPages(withNotes, {expandReveals});
+  const noteElements = buildPrintPages(withNotes, {expandReveals, ...(letter === undefined ? {} : {letter})});
   for (const notes of noteElements) await typeset(notes);
   await waitForAssets(root);
   fitPrintNotes(root);
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   state.printPrepared = true;
   root.classList.remove('print-preparing');
+  return root.querySelectorAll('.print-page').length;
+}
+async function preparePrint(withNotes, options = {}) {
+  await buildPrint(withNotes, options);
   window.print();
 }
 /* File > Print (or any print the app did not start): build the pages synchronously
@@ -9055,8 +9092,53 @@ function cleanupPrint() {
   $('print-root').replaceChildren();
   state.printPrepared = false;
 }
+function togglePrintLetter() {
+  updateEditorPrefs({printLetter: !editorPrefs.readPrefs().printLetter});
+  syncPrintMenu();
+}
+/* Export PDF: tools/serve-deck.mjs, the local editor server, saves a PDF of a deck it may write next
+   to the deck file, with tools/export-pdf.mjs (headless Chrome) and no print dialog. The PDF is made
+   from the file, so the deck's edits are saved to disk first. Static hosting has no editor server,
+   and a deck it did not serve cannot be exported, so the menu items show only for a deck that saves
+   to disk. */
+const PDF_EXPORT_URL = `${EDITOR_SERVER_PREFIX}pdf`;
+function syncPrintMenu() {
+  $('print-letter').setAttribute('aria-pressed', String(!!editorPrefs.readPrefs().printLetter));
+  const disk = state.diskDeck;
+  const base = disk ? disk.name.replace(/\.json$/i, '') : 'deck';
+  $('export-pdf').querySelector('kbd').textContent = `${base}.pdf`;
+  $('export-pdf-steps').querySelector('kbd').textContent = `${base}.steps.pdf`;
+  for (const id of ['export-pdf-rule', 'export-pdf', 'export-pdf-steps']) $(id).hidden = !disk;
+}
+async function exportPdf({steps = false} = {}) {
+  const disk = state.diskDeck;
+  if (!disk) return;
+  if (state.editMode) commitEditor({record:true});
+  if (!(await saveToDisk()) || disk.conflict || state.diskDeck !== disk) {
+    setStatus(`PDF not exported: ${disk.name} could not be saved first`, 'error');
+    return;
+  }
+  const what = steps ? `every reveal step of ${disk.name}` : disk.name;
+  setStatus(`Exporting ${what} to PDF…`, 'working');
+  try {
+    const response = await fetch(PDF_EXPORT_URL, {method:'POST', headers:{'Content-Type':'application/json'}, cache:'no-store',
+                                                  body:JSON.stringify({path:disk.path, steps, letter:!!editorPrefs.readPrefs().printLetter})});
+    const reply = await response.json().catch(() => ({}));
+    if (response.ok && reply.file) {
+      const missing = Array.isArray(reply.missing) && reply.missing.length ? ` · missing images: ${reply.missing.join(', ')}` : '';
+      setStatus(`Saved ${reply.file} (${reply.pages} page${reply.pages === 1 ? '' : 's'})${missing}`, missing ? 'error' : 'saved');
+    } else if (response.status === 404 || response.status === 405) {
+      setStatus('PDF not exported: this editor server is older than PDF export; restart it from an updated ModernSlides', 'error');
+    } else setStatus(`PDF not exported: ${reply.error || response.status}`, 'error');
+  } catch {
+    setStatus('PDF not exported: the editor server is not running', 'error');
+  }
+}
 
 window.ModernSlidesAPI = {
+  /* For tools/export-pdf.mjs: builds the print pages without changing the deck and resolves to
+     their number once they are ready for the browser's PDF printer. */
+  printPages: ({steps = false, notes = false, letter = false} = {}) => buildPrint(!!notes, {expandReveals: !!steps && !notes, letter: !!letter, commit: false}),
   next: nextStepOrSlide,
   previous: previousStepOrSlide,
   resetTimer: resetSpeakerTimer,
@@ -10733,6 +10815,9 @@ function setupEvents() {
   $('print-deck').addEventListener('click', () => preparePrint(false));
   $('print-progressive').addEventListener('click', () => preparePrint(false, {expandReveals:true}));
   $('print-notes').addEventListener('click', () => preparePrint(true));
+  $('print-letter').addEventListener('click', togglePrintLetter);
+  $('export-pdf').addEventListener('click', () => exportPdf());
+  $('export-pdf-steps').addEventListener('click', () => exportPdf({steps:true}));
   $('speaker-button').addEventListener('click', openSpeaker);
   $('present-button').addEventListener('click', () => toggleEdit(false));
   $('file-input').addEventListener('change', async event => {
@@ -11196,6 +11281,7 @@ function closeMenus() {
 function openMenu(button) {
   const menu = $(button.dataset.menu);
   closeMenus();
+  if (menu.id === 'print-menu') syncPrintMenu();
   menu.hidden = false;
   button.setAttribute('aria-expanded', 'true');
   const rect = button.getBoundingClientRect();
