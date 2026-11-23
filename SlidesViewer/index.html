@@ -5230,6 +5230,7 @@ html[data-highlight="off"] #body-highlight { visibility: hidden; }
 #body-highlight .hl-emph { color: var(--hl-emph); }
 #body-highlight .hl-code { color: var(--hl-code); }
 #body-highlight .hl-punct { color: var(--hl-punct); }
+#body-highlight .hl-comment { color: var(--ui-muted); }
 #body-highlight .hl-swatch { text-decoration-line: underline; text-decoration-thickness: .18em; text-underline-offset: .2em; }
 #format-bar {
   display: flex;
@@ -5646,7 +5647,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 82aa4119828f by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 416e0937a9b6 by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5761,6 +5762,7 @@ window.ModernSlidesEditor = (() => {
           <button type="button" data-format="left" title="Align left" aria-label="Align left"><i class="fa-solid fa-align-left"></i></button>
           <button type="button" data-format="center" title="Align center" aria-label="Align center"><i class="fa-solid fa-align-center"></i></button>
           <button type="button" data-format="right" title="Align right" aria-label="Align right"><i class="fa-solid fa-align-right"></i></button>
+          <button type="button" data-format="comment" title="Comment out the selected lines, or uncomment them (Cmd/Ctrl+/)" aria-label="Comment or uncomment lines"><code>//</code></button>
           <span class="bar-toggles">
             <button id="toggle-preview" type="button" class="bar-toggle" title="Show or hide a live preview of this slide" aria-pressed="false"><i class="fa-regular fa-window-maximize"></i> Preview</button>
             <button id="toggle-preview-layout" type="button" class="bar-toggle" title="Put the preview below the text" aria-label="Preview layout"><i class="fa-solid fa-table-columns"></i></button>
@@ -6215,7 +6217,7 @@ const MATHJAX_SRC = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js
 /* Themes that draw a navigation bar from the slides' Header: lines (see buildNavbar). */
 const NAVBAR_THEMES = new Set(['singapore']);
 const LAYOUTS = new Set(['auto', 'top', 'center', 'statement', 'data', 'full']);
-const BLOCK_TYPES = new Set(['title', 'text', 'list', 'quote', 'image', 'break', 'rule', 'website', 'code', 'columns', 'table']);
+const BLOCK_TYPES = new Set(['title', 'text', 'list', 'quote', 'image', 'break', 'rule', 'website', 'code', 'columns', 'table', 'comment']);
 const DIRECTIVES = new Set(['title','header','bigtext','text','smalltext','tinytext','quote','image','break','rule','website','code','aside','background','columns','table']);
 const TOP_LEVEL_FIELDS = new Set(['header','aside','background']);
 
@@ -6252,7 +6254,7 @@ const DECK_SCHEMA = {
     },
     block:{
       type:'object',required:['type'],properties:{
-        type:{enum:['title','text','list','quote','image','break','rule','website','code','columns','table']},
+        type:{enum:['title','text','list','quote','image','break','rule','website','code','columns','table','comment']},
         id:{type:'string'},step:{type:'integer',minimum:0},until:{type:'integer',minimum:0},align:{enum:['left','center','right']},
         start:{type:'integer',minimum:1},progressive:{type:'boolean'},columnAlign:{type:'array',items:{enum:['l','c','r']}}
       }
@@ -6270,7 +6272,8 @@ function validateBlockInput(block, path, errors) {
   const specific = {
     title:['content'], text:['size','content'], list:['ordered','size','start','progressive','items'], quote:['content','source'],
     image:['src','caption','width','fit','focus'], break:['lines'], rule:[], website:['src','poster'],
-    code:['lang','content'], columns:['widths','valign','columns'], table:['widths','headerRows','headerCols','columnAlign','rows']
+    code:['lang','content'], columns:['widths','valign','columns'], table:['widths','headerRows','headerCols','columnAlign','rows'],
+    comment:['content']
   };
   if (!BLOCK_TYPES.has(block.type)) { errors.push(`${path}.type is unsupported.`); return; }
   collectUnknownKeys(block, new Set([...common, ...(specific[block.type] || [])]), path, errors);
@@ -6619,6 +6622,11 @@ function normalizeBlock(block) {
     case 'break': out.lines = Math.max(0, Number(out.lines) || 1); break;
     case 'website': out.src = String(out.src ?? ''); out.poster = String(out.poster ?? ''); break;
     case 'code': out.lang = String(out.lang ?? ''); out.content = String(out.content ?? ''); break;
+    case 'comment':
+      /* Every line a comment line, so the text form reads back as the same comment. */
+      out.content = String(out.content ?? '').split('\n').map(line => isCommentLine(line) ? line.trim() : `// ${line.trim()}`.trimEnd()).join('\n');
+      delete out.step; delete out.until; delete out.align;
+      break;
     case 'columns':
       out.widths = Array.isArray(out.widths) && out.widths.length ? out.widths.map(n => Math.max(.01, Number(n) || 1)) : [];
       out.valign = ['top','center','bottom'].includes(out.valign) ? out.valign : 'center';
@@ -6958,11 +6966,17 @@ function isControlLine(line) {
   const value = String(line ?? '').trim();
   return value === 'End' || value === '---' || isStepMarkerLine(value);
 }
-function gatherDirectiveValue(ctx, firstValue) {
+/* A line starting with // is a comment: it stays in the slide text and in the deck but is never shown
+   (displaySlide removes it). Comment lines between blocks form a comment block; a comment line inside
+   a title, paragraph, list item, quote, header or aside stays in that text, and one inside a table is
+   a one-cell row. A line starting with \// shows as a literal //. Code blocks keep every line as code. */
+function isCommentLine(line) { return /^[ \t]*\/\//.test(String(line ?? '')); }
+function isCommentRow(row) { return Array.isArray(row) && row.length === 1 && typeof row[0] === 'string' && isCommentLine(row[0]); }
+function gatherDirectiveValue(ctx, firstValue, {stopAtComments = false} = {}) {
   const parts = [firstValue];
   while (ctx.index < ctx.lines.length) {
     const line = ctx.lines[ctx.index];
-    if (isControlLine(line) || matchDirective(line) || looksDirectiveLike(line)) break;
+    if (isControlLine(line) || matchDirective(line) || looksDirectiveLike(line) || (stopAtComments && isCommentLine(line))) break;
     parts.push(literalizeLine(line));
     ctx.index++;
   }
@@ -7028,7 +7042,9 @@ function makeTextBlocks(raw, size, ctx, props = {}) {
         const continuation = [];
         while (i < lines.length && lines[i].trim()) {
           if (parseListLine(lines[i])) break;
-          if (indentWidth(lines[i]) <= baseIndent) break;
+          /* A comment stays with the item above it at any indent, so commenting out an item
+             (// - item) neither splits the list nor shifts its reveal steps. */
+          if (indentWidth(lines[i]) <= baseIndent && !isCommentLine(lines[i])) break;
           continuation.push(lines[i].replace(/^\s+/, ''));
           i++;
         }
@@ -7047,6 +7063,10 @@ function makeTextBlocks(raw, size, ctx, props = {}) {
       if (parseListLine(lines[i]) && paragraph.length) break;
       paragraph.push(lines[i]);
       i++;
+    }
+    if (paragraph.every(isCommentLine)) {
+      blocks.push({type:'comment', content: paragraph.map(line => line.trim()).join('\n')});
+      continue;
     }
     const aligned = extractLegacyLineAlign(paragraph.join('\n'), props.align);
     const block = {type:'text', size, content: aligned.content, step:props.step ?? ctx.step};
@@ -7123,6 +7143,13 @@ function parseSequence(ctx, stopTokens = new Set(), depth = 0, expectedStepEnd =
     }
     if (trimmed === 'End' || trimmed === '---') break;
 
+    if (isCommentLine(rawLine)) {
+      const comment = [];
+      while (ctx.index < ctx.lines.length && isCommentLine(ctx.lines[ctx.index])) comment.push(ctx.lines[ctx.index++].trim());
+      blocks.push({type:'comment', content:comment.join('\n')});
+      continue;
+    }
+
     const directive = matchDirective(rawLine);
     if (!directive) {
       if (looksDirectiveLike(rawLine)) ctx.warnings.push(`Line ${lineNumber}: unknown directive "${directiveLikeName(rawLine)}"; it was kept as ordinary text.`);
@@ -7148,7 +7175,7 @@ function parseSequence(ctx, stopTokens = new Set(), depth = 0, expectedStepEnd =
     const positional = valuePositionals.join(';').trim();
 
     if (TOP_LEVEL_FIELDS.has(directive.name)) {
-      const value = gatherDirectiveValue(ctx, directive.value).trim();
+      const value = gatherDirectiveValue(ctx, directive.value, {stopAtComments: directive.name === 'background'}).trim();
       if (ctx.step > 0) ctx.warnings.push(`Line ${lineNumber}: ${directive.name} is slide-level metadata and remains visible outside step regions.`);
       if (directive.name === 'header') ctx.fields.header = value;
       if (directive.name === 'aside') ctx.fields.aside = value;
@@ -7181,6 +7208,7 @@ function parseSequence(ctx, stopTokens = new Set(), depth = 0, expectedStepEnd =
       while (ctx.index < ctx.lines.length && ctx.lines[ctx.index].trim() !== 'End') {
         const line = ctx.lines[ctx.index++];
         if (!line.trim()) continue;
+        if (isCommentLine(line)) { rows.push([line.trim()]); continue; }
         if (isStepMarkerLine(line)) { ctx.warnings.push(`Line ${ctx.index}: step regions cannot split individual table rows. Wrap the entire Table block instead.`); continue; }
         rows.push(splitOutsideMath(line, '|').map(cell => { const value = cell.trim(); const structured = decodeStructuredTableCell(value); return structured || value; }));
       }
@@ -7227,7 +7255,7 @@ function parseSequence(ctx, stopTokens = new Set(), depth = 0, expectedStepEnd =
       continue;
     }
 
-    const value = gatherDirectiveValue(ctx, directive.value);
+    const value = gatherDirectiveValue(ctx, directive.value, {stopAtComments: directive.name === 'image' || directive.name === 'website'});
     if (directive.name === 'title') {
       const aligned = extractLegacyLineAlign(value, props.align);
       const block = {type:'title', content:aligned.content, step:props.step};
@@ -7379,10 +7407,18 @@ function renderBlockText(block, indent = 0) {
       if (block.headerCols) extras.push(`headercol=${block.headerCols}`);
       if (block.columnAlign?.length) extras.push(`columnAlign=${block.columnAlign.join(',')}`);
       lines.push(`${pad}Table${joinArgs('', commonArgs(block, extras))}:`);
-      block.rows.forEach(row => lines.push(`${pad}${row.map(cell => escapePipesOutsideMath(typeof cell === 'string' ? cell : encodeStructuredTableCell(cell))).join(' | ')}`));
+      block.rows.forEach(row => {
+        if (isCommentRow(row)) { lines.push(`${pad}${row[0].trim()}`); return; }
+        const cells = row.map(cell => escapePipesOutsideMath(typeof cell === 'string' ? cell : encodeStructuredTableCell(cell)));
+        if (isCommentLine(cells[0])) cells[0] = cells[0].replace(/^(\s*)/, '$1\\');
+        lines.push(`${pad}${cells.join(' | ')}`);
+      });
       lines.push(`${pad}End`);
       break;
     }
+    case 'comment':
+      lines.push(String(block.content ?? '').split('\n').map(line => `${pad}${line.trim()}`).join('\n'));
+      break;
   }
   return lines.join('\n');
 }
@@ -7434,10 +7470,11 @@ function runRoundTripSelfTest() {
   const fixture = {
     header:'Header **markup**', aside:'Aside', background:{src:'image.jpg',mode:'tint'},
     blocks:[
-      {type:'title',content:'Title',align:'center',step:1,until:2},
-      {type:'text',size:2.4,content:'Right text',align:'right',step:0},
+      {type:'comment',content:'// A note\n// Image: old.png'},
+      {type:'title',content:'Title\n// hidden line',align:'center',step:1,until:2},
+      {type:'text',size:2.4,content:'Right text\n// hidden line\n\\// literal',align:'right',step:0},
       {type:'list',ordered:true,start:3,progressive:false,size:'normal',align:'center',step:0,items:[
-        {number:3,content:'Three',step:1,until:2},{number:7,content:'Seven\nwrapped',step:3}
+        {number:3,content:'Three\n// - Five',step:1,until:2},{number:7,content:'Seven\nwrapped',step:3}
       ]},
       {type:'list',ordered:false,start:1,progressive:true,size:'big',step:0,items:[
         {content:'First',step:1},{content:'Second\n• nested\nwrapped\n1) numbered\n(ii) roman',step:2}
@@ -7449,11 +7486,11 @@ function runRoundTripSelfTest() {
       {type:'website',src:'https://example.com/a_(b)',poster:'poster.jpg',step:0},
       {type:'code',lang:'python',content:'print("x")\n\\End\n\\---',step:1},
       {type:'columns',widths:[2,1],valign:'top',align:'center',step:1,columns:[
-        {blocks:[{type:'text',size:'small',content:'Left',step:0}]},
+        {blocks:[{type:'comment',content:'// Left note'},{type:'text',size:'small',content:'Left',step:0}]},
         {blocks:[{type:'text',size:'normal',content:'Right',step:3,until:4}]}
       ]},
       {type:'table',widths:[2,1],headerRows:1,headerCols:1,columnAlign:['l','r'],align:'center',step:2,rows:[
-        ['Name','Value'],['A',{blocks:[{type:'text',size:'tiny',content:'Rich **cell**',step:0}]}]
+        ['Name','Value'],['// Old | 1'],['\\// literal','2'],['A',{blocks:[{type:'text',size:'tiny',content:'Rich **cell**',step:0}]}]
       ]}
     ]
   };
@@ -7792,7 +7829,8 @@ function loadEditorsFromCurrent() {
   showWarnings(lintSlide(slide));
   state.editorLoading = false;
 }
-function lintSlide(slide) {
+function lintSlide(deckSlide) {
+  const slide = displaySlide(deckSlide);
   const warnings = [];
   const title = slide.blocks.find(block => block.type === 'title');
   if (title && title.content.length > 105) warnings.push('Title is long; aim for two lines or fewer.');
@@ -7807,6 +7845,45 @@ function lintSlide(slide) {
   walk(slide.blocks);
   lists.forEach(list => { if (list.items.length > 7) warnings.push('Long list: consider splitting it across slides.'); });
   return [...new Set(warnings)];
+}
+
+/* ---------- Comments are never shown ----------
+   displaySlide() is the copy of a slide that the renderer, the navigation bar and the lint draw from:
+   comment blocks, comment lines and comment table rows removed (a block, list item or row left empty
+   by that goes too), and a \// that starts a line shown as //. The deck keeps every comment. */
+const unescapeCommentMark = line => String(line ?? '').replace(/^([ \t]*)\\(?=\/\/)/, '$1');
+function hideCommentLines(text) {
+  const source = String(text ?? '');
+  if (!/^[ \t]*\\?\/\//m.test(source)) return source;
+  const lines = source.split('\n');
+  const kept = lines.filter(line => !isCommentLine(line)).map(unescapeCommentMark);
+  if (kept.length === lines.length) return kept.join('\n');
+  return kept.join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+|\n+$/g, '');
+}
+function displayBlocks(blocks) {
+  const emptied = (before, after) => String(before ?? '').trim() !== '' && !after.trim();
+  return (blocks || []).flatMap(block => {
+    switch (block.type) {
+      case 'comment': return [];
+      case 'title': case 'text': case 'quote': {
+        const content = hideCommentLines(block.content);
+        return emptied(block.content, content) ? [] : [{...block, content}];
+      }
+      case 'list': {
+        const items = block.items.map(item => ({...item, content: hideCommentLines(item.content)})).filter((item, index) => !emptied(block.items[index].content, item.content));
+        return items.length || !block.items.length ? [{...block, items}] : [];
+      }
+      case 'columns': return [{...block, columns: block.columns.map(column => ({...column, blocks: displayBlocks(column.blocks)}))}];
+      case 'table': {
+        const cell = value => value && typeof value === 'object' && Array.isArray(value.blocks) ? {...value, blocks: displayBlocks(value.blocks)} : unescapeCommentMark(value);
+        return [{...block, rows: block.rows.filter(row => !isCommentRow(row)).map(row => row.map(cell))}];
+      }
+      default: return [block];
+    }
+  });
+}
+function displaySlide(slide) {
+  return {...slide, header: hideCommentLines(slide.header), aside: hideCommentLines(slide.aside), blocks: displayBlocks(slide.blocks)};
 }
 
 /* ---------- Canonical renderer ---------- */
@@ -8067,7 +8144,7 @@ function renderBlock(block, doc = document) {
 }
 function inferredLayout(slide) {
   if (slide.layout && slide.layout !== 'auto') return slide.layout;
-  const meaningful = slide.blocks.filter(block => block.type !== 'break' && block.type !== 'rule');
+  const meaningful = slide.blocks.filter(block => !['break', 'rule', 'comment'].includes(block.type));
   const nonTitles = meaningful.filter(block => block.type !== 'title');
   if (meaningful.length === 1 && meaningful[0].type === 'image') return 'full';
   if (nonTitles.length === 1 && ['quote'].includes(nonTitles[0].type)) return 'statement';
@@ -8106,7 +8183,7 @@ function navbarModel(deck) {
   const partOf = new Map(), sectionOf = new Map();
   let part = null, section = null, afterFinal = false;
   deck.slides.forEach(slide => {
-    const name = String(slide.header || '').trim();
+    const name = hideCommentLines(slide.header).trim();
     const appendix = /^appendix$/i.test(name);
     if (!part || slide.part || afterFinal || appendix) { part = {sections: []}; section = null; }
     afterFinal = !!slide.final;
@@ -8175,7 +8252,8 @@ function markInlineRoles(root) {
 function activePalette(meta = state.deck.meta) {
   return meta.palette && PALETTE_THEMES.has(meta.theme) ? meta.palette : null;
 }
-function buildCanonicalFrame(slide, doc = document) {
+function buildCanonicalFrame(deckSlide, doc = document) {
+  const slide = displaySlide(deckSlide);
   const frame = doc.createElement('article');
   const palette = activePalette();
   frame.className = `slide-frame theme-${state.deck.meta.theme}${palette ? ` palette-${palette} has-palette` : ''} layout-${inferredLayout(slide)}`;
@@ -9957,8 +10035,7 @@ function insertAtCursor(textarea, text) {
   const before = textarea.value.slice(0, start);
   const prefix = before && !before.endsWith('\n') ? '\n' : '';
   const insertion = prefix + text + (textarea.value.slice(end).startsWith('\n') ? '' : '\n');
-  textarea.setRangeText(insertion, start, end, 'end');
-  textarea.dispatchEvent(new Event('input', {bubbles:true}));
+  replaceEditorText(textarea, insertion, start, end);
 }
 async function handleImageFiles(files) {
   const images = [...files].filter(file => file.type.startsWith('image/'));
@@ -10591,11 +10668,8 @@ function wrapSelection(open, close = open) {
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
   const selected = textarea.value.slice(start, end);
-  textarea.setRangeText(open + selected + close, start, end, 'select');
-  textarea.selectionStart = start + open.length;
-  textarea.selectionEnd = end + open.length;
-  textarea.dispatchEvent(new Event('input', {bubbles:true}));
-  textarea.focus();
+  replaceEditorText(textarea, open + selected + close, start, end);
+  textarea.setSelectionRange(start + open.length, end + open.length);
 }
 function setAlignOnDirectiveLine(line, align) {
   const match = String(line).match(/^(\s*)([A-Za-z][A-Za-z0-9]*)(?:\((.*?)\))?(\s*:\s*)(.*)$/);
@@ -10622,9 +10696,8 @@ function alignSelection(align) {
   });
   if (changed) {
     const replacement = selectedLines.join('\n');
-    textarea.setRangeText(replacement, lineStart, lineEnd, 'select');
-    textarea.selectionStart = lineStart;
-    textarea.selectionEnd = lineStart + replacement.length;
+    replaceEditorText(textarea, replacement, lineStart, lineEnd);
+    textarea.setSelectionRange(lineStart, lineStart + replacement.length);
   } else {
     const beforeText = value.slice(0, lineStart);
     const beforeLines = beforeText.split('\n');
@@ -10637,41 +10710,119 @@ function alignSelection(align) {
       const oldLine = beforeLines[target];
       const newLine = setAlignOnDirectiveLine(oldLine, align);
       const delta = newLine.length - oldLine.length;
-      beforeLines[target] = newLine;
-      const rebuiltBefore = beforeLines.join('\n');
-      textarea.value = rebuiltBefore + value.slice(lineStart);
-      textarea.selectionStart = selectionStart + delta;
-      textarea.selectionEnd = selectionEnd + delta;
+      const oldStart = target ? beforeLines.slice(0, target).join('\n').length + 1 : 0;
+      replaceEditorText(textarea, newLine, oldStart, oldStart + oldLine.length);
+      textarea.setSelectionRange(selectionStart + delta, selectionEnd + delta);
     } else return;
   }
-  textarea.dispatchEvent(new Event('input', {bubbles:true}));
   textarea.focus();
 }
-/* Tab in the slide text, as in a code editor. With the cursor in a line (or a selection inside one) Tab
-   inserts a tab, which the box shows two columns wide and the parser reads as two spaces; with several
-   lines selected it indents each of them. Shift+Tab removes one indent (a tab or up to two spaces) from
-   the current or selected lines. insertText keeps each change in the browser's own undo (Cmd/Ctrl+Z).
-   The "Tab key indents slide text" editor setting, when off, leaves Tab to move between controls. */
+/* Every change the app makes to the text in a box (formatting buttons, Tab, shortcut expansions, pasted
+   images) goes through here. insertText keeps it in the browser's own undo (Cmd/Ctrl+Z), which setting
+   the text from code would not; it needs the box focused, so a hidden box takes the plain write. */
 function replaceEditorText(textarea, text, start, end) {
+  textarea.focus();
   textarea.setSelectionRange(start, end);
   let inserted = false;
-  try { inserted = document.execCommand('insertText', false, text); } catch {}
+  if (document.activeElement === textarea) { try { inserted = document.execCommand('insertText', false, text); } catch {} }
   if (!inserted) {
     textarea.setRangeText(text, start, end, 'end');
     textarea.dispatchEvent(new Event('input', {bubbles:true}));
   }
 }
-function indentEditorText(textarea, outdent = false) {
+/* The editing keys in a text box: Cmd+Z, Cmd+Shift+Z, Cmd+A, Cmd+X and Cmd+C run the box's own undo,
+   redo, select-all, cut and copy. On macOS the browser leaves these keys to the application's Edit
+   menu, and VS Code's integrated browser does not pass that menu's commands back to the page (undo and
+   select-all in any window; also cut, copy and paste in a window popped out of the main one), so the
+   keys arrive here but change nothing. Elsewhere this is what the menu would do, and a browser that
+   cannot run a command keeps its usual handling. A page cannot paste on its own, so Cmd+V is left to
+   the browser and pasteUnlessBrowserDoes() reads the clipboard only when no paste follows. */
+const EDITING_INPUT_TYPES = new Set(['text', 'search', 'url', 'email', 'tel', 'password', 'number']);
+function handleEditingKeys(event) {
+  if (event.defaultPrevented || !event.metaKey || event.ctrlKey || event.altKey || event.isComposing) return;
+  const target = event.target;
+  if (!(target instanceof HTMLTextAreaElement || (target instanceof HTMLInputElement && EDITING_INPUT_TYPES.has(target.type)))) return;
+  let key = event.key.toLowerCase();
+  if (!/^[a-z]$/.test(key) && /^Key[A-Z]$/.test(event.code)) key = event.code.slice(3).toLowerCase();
+  if (key === 'a' && !event.shiftKey) {
+    try { target.select(); event.preventDefault(); } catch {}
+    return;
+  }
+  if (key === 'v' && !event.shiftKey) { pasteUnlessBrowserDoes(target); return; }
+  const command = event.shiftKey ? (key === 'z' ? 'redo' : '') : ({z: 'undo', x: 'cut', c: 'copy'}[key] || '');
+  if (!command) return;
+  let done = false;
+  try { done = document.execCommand(command); } catch {}
+  if (done) event.preventDefault();
+}
+/* After Cmd+V, wait briefly for the browser's paste event. Without one (VS Code's popped-out windows),
+   read the clipboard through the Clipboard API, which may ask once for permission, and insert an image
+   as a pasted image would be, or the text, undoably. A browser paste arriving meanwhile is dropped. */
+function pasteUnlessBrowserDoes(target) {
+  let pasted = false;
+  const notice = () => { pasted = true; };
+  document.addEventListener('paste', notice, true);
+  setTimeout(async () => {
+    document.removeEventListener('paste', notice, true);
+    if (pasted || document.activeElement !== target || !navigator.clipboard) return;
+    const late = event => event.preventDefault();
+    document.addEventListener('paste', late, true);
+    const start = target.selectionStart, end = target.selectionEnd;
+    try {
+      if (target.id === 'body-editor' && navigator.clipboard.read) {
+        const images = [];
+        try {
+          for (const item of await navigator.clipboard.read()) {
+            const type = item.types.find(name => name.startsWith('image/'));
+            if (type) images.push(new File([await item.getType(type)], 'pasted-image', {type}));
+          }
+        } catch {}
+        if (images.length) { target.setSelectionRange(start, end); await handleImageFiles(images); return; }
+      }
+      const text = await navigator.clipboard.readText();
+      if (text) replaceEditorText(target, text, start, end);
+    } catch { setStatus('Paste is blocked: allow clipboard access for this page', 'error'); }
+    finally { document.removeEventListener('paste', late, true); }
+  }, 250);
+}
+/* The whole lines the cursor or selection is on, leaving out a last line the selection only reaches
+   the start of. */
+function selectedLineBlock(textarea) {
   const value = textarea.value;
   const start = textarea.selectionStart, end = textarea.selectionEnd;
-  if (!outdent && !value.slice(start, end).includes('\n')) { replaceEditorText(textarea, '\t', start, end); return; }
-  /* Whole lines: from the start of the first selected line to the end of the last one, leaving out a
-     last line the selection only reaches the start of. */
   const blockStart = start > 0 ? value.lastIndexOf('\n', start - 1) + 1 : 0;
   const lastChar = end > start && value[end - 1] === '\n' ? end - 1 : end;
   const lineBreak = value.indexOf('\n', lastChar);
   const blockEnd = lineBreak < 0 ? value.length : lineBreak;
-  const lines = value.slice(blockStart, blockEnd).split('\n');
+  return {start, end, blockStart, blockEnd, lines: value.slice(blockStart, blockEnd).split('\n')};
+}
+/* Cmd/Ctrl+/ (and the // button) comments out the current or selected lines, putting // after each
+   line's indent, or uncomments them when every one is a comment already. One undo reverses it. */
+function toggleCommentLines(textarea) {
+  const {start, end, blockStart, blockEnd, lines} = selectedLineBlock(textarea);
+  const filled = lines.filter(line => line.trim());
+  if (!filled.length) return;
+  const uncomment = filled.every(isCommentLine);
+  const changed = lines.map(line => !line.trim() ? line : uncomment ? line.replace(/^([ \t]*)\/\/ ?/, '$1') : line.replace(/^([ \t]*)/, '$1// '));
+  const replacement = changed.join('\n');
+  replaceEditorText(textarea, replacement, blockStart, blockEnd);
+  if (lines.length > 1 || start !== end) { textarea.setSelectionRange(blockStart, blockStart + replacement.length); return; }
+  /* One line and no selection: the cursor stays on the same character of the text. */
+  const at = blockStart + (lines[0].match(/^[ \t]*/) || [''])[0].length;
+  const shift = changed[0].length - lines[0].length;
+  const cursor = start <= at ? start : Math.max(at, start + shift);
+  textarea.setSelectionRange(cursor, cursor);
+}
+/* Tab in the slide text, as in a code editor. With the cursor in a line (or a selection inside one) Tab
+   inserts a tab, which the box shows two columns wide and the parser reads as two spaces; with several
+   lines selected it indents each of them. Shift+Tab removes one indent (a tab or up to two spaces) from
+   the current or selected lines. The "Tab key indents slide text" editor setting, when off, leaves Tab
+   to move between controls. */
+function indentEditorText(textarea, outdent = false) {
+  const value = textarea.value;
+  const start = textarea.selectionStart, end = textarea.selectionEnd;
+  if (!outdent && !value.slice(start, end).includes('\n')) { replaceEditorText(textarea, '\t', start, end); return; }
+  const {blockStart, blockEnd, lines} = selectedLineBlock(textarea);
   const changed = lines.map(line => outdent ? line.replace(/^(?:\t| {1,2})/, '') : (line.trim() ? `\t${line}` : line));
   const replacement = changed.join('\n');
   if (replacement === lines.join('\n')) return;
@@ -10697,8 +10848,7 @@ function expandSingleLetterShortcut(event) {
   const replacement = map[current];
   if (!replacement) return;
   event.preventDefault();
-  textarea.setRangeText(replacement, lineStart, cursor, 'end');
-  textarea.dispatchEvent(new Event('input', {bubbles:true}));
+  replaceEditorText(textarea, replacement, lineStart, cursor);
 }
 function setNotesTab(tab) {
   state.activeNotesTab = tab;
@@ -10850,6 +11000,12 @@ function setupEvents() {
       wrapSelection('**');
       return;
     }
+    /* Cmd/Ctrl+/ (event.key, so a layout that types / with Shift works too; Cmd+? is left alone). */
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key === '/') {
+      event.preventDefault();
+      toggleCommentLines(event.currentTarget);
+      return;
+    }
     if (event.key === 'Tab' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.isComposing && editorPrefs.readPrefs().tabIndents) {
       event.preventDefault();
       indentEditorText(event.currentTarget, event.shiftKey);
@@ -10884,6 +11040,7 @@ function setupEvents() {
     if (action === 'left') alignSelection('left');
     if (action === 'center') alignSelection('center');
     if (action === 'right') alignSelection('right');
+    if (action === 'comment') toggleCommentLines($('body-editor'));
   });
   $('speaker-tab').addEventListener('click', () => setNotesTab('speaker'));
   $('print-tab').addEventListener('click', () => setNotesTab('print'));
@@ -11049,6 +11206,7 @@ function setupEvents() {
   $('mobile-next').addEventListener('click', nextStepOrSlide);
   setupMobileFullscreen();
 
+  document.addEventListener('keydown', handleEditingKeys);
   document.addEventListener('keydown', event => {
     const modal = document.querySelector('.modal.open');
     const inEditorField = event.target instanceof Element && event.target.closest('textarea,input,select');
@@ -11340,6 +11498,7 @@ function highlightSlideText(text) {
       if (/^\s*End\s*$/.test(line)) { code = false; return hlSpan('block', line); }
       return hlSpan('code', line);
     }
+    if (isCommentLine(line)) return hlSpan('comment', line);
     if (/^\s*End\s*$/.test(line)) { if (table) table = false; else columns = false; return hlSpan('block', line); }
     if (columns && /^\s*---\s*$/.test(line)) return hlSpan('block', line);
     if (/^\s*\[(?:End\s+)?Step\s+\d+\]\s*$/i.test(line)) return hlSpan('block', line);
