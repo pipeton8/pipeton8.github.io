@@ -5231,6 +5231,7 @@ html[data-highlight="off"] #body-highlight { visibility: hidden; }
 #body-highlight .hl-code { color: var(--hl-code); }
 #body-highlight .hl-punct { color: var(--hl-punct); }
 #body-highlight .hl-comment { color: var(--ui-muted); }
+#body-highlight .hl-link-hover { text-decoration-line: underline; text-underline-offset: .2em; }
 #body-highlight .hl-swatch { text-decoration-line: underline; text-decoration-thickness: .18em; text-underline-offset: .2em; }
 #format-bar {
   display: flex;
@@ -5377,6 +5378,9 @@ html[data-preview="off"] #toggle-preview-layout { display: none; }
 html[data-preview="side"] #editor-preview, html[data-preview="below"] #editor-preview { display: block; }
 #editor-preview-slot { width: 100%; height: 100%; background: transparent; }
 #editor-preview-slot .slide-frame { box-shadow: 0 .3rem 1.2rem rgba(0,0,0,.25); pointer-events: none; }
+/* Links to other slides (buttons, [text](#slide-id), the navigation bar) work in the preview: a click
+   opens that slide in the editor. Web links and embedded pages stay inert there. */
+#editor-preview-slot .slide-frame .ms-link-internal { pointer-events: auto; }
 
 /* Toolbar menus: fixed panels opened above their button (setupMenus). */
 .menu {
@@ -5647,7 +5651,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 8746b1c67bfa by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 7de0bfb9afae by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -10739,6 +10743,22 @@ function replaceEditorText(textarea, text, start, end) {
    keys arrive here but change nothing. Elsewhere this is what the menu would do, and a browser that
    cannot run a command keeps its usual handling. A page cannot paste on its own, so Cmd+V is left to
    the browser and pasteUnlessBrowserDoes() reads the clipboard only when no paste follows. */
+/* The platform's command key, alone among Cmd and Ctrl: Cmd on Apple devices (where Ctrl+click is a
+   right click), Ctrl elsewhere. */
+const IS_APPLE = /Mac|iPhone|iPad/.test(navigator.platform || '');
+const commandModifier = event => IS_APPLE ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
+/* The slide a link in the text points to, when the position is inside it: [text](#slide-id) or
+   \button(...)[text](#slide-id). '' when there is none. */
+function slideLinkAt(text, position) {
+  const lineStart = text.lastIndexOf('\n', position - 1) + 1;
+  const lineBreak = text.indexOf('\n', position);
+  const line = text.slice(lineStart, lineBreak < 0 ? text.length : lineBreak);
+  const at = position - lineStart;
+  for (const match of line.matchAll(/(?:\\button(?:\([^)\n]*\))?)?\[[^\]\n]*\]\(#([^)\s]+)\)/g)) {
+    if (at >= match.index && at <= match.index + match[0].length) return match[1];
+  }
+  return '';
+}
 const EDITING_INPUT_TYPES = new Set(['text', 'search', 'url', 'email', 'tel', 'password', 'number']);
 function handleEditingKeys(event) {
   if (event.defaultPrevented || !event.metaKey || event.ctrlKey || event.altKey || event.isComposing) return;
@@ -11015,6 +11035,16 @@ function setupEvents() {
     }
     expandSingleLetterShortcut(event);
   });
+  /* Cmd+click (Ctrl+click) on a slide link in the text opens that slide, as a link is followed in a code
+     editor; a plain click only places the cursor. */
+  $('body-editor').addEventListener('click', event => {
+    const textarea = event.currentTarget;
+    if (!commandModifier(event) || event.shiftKey || event.altKey || textarea.selectionStart !== textarea.selectionEnd) return;
+    const id = slideLinkAt(textarea.value, textarea.selectionStart);
+    if (!id || !state.deck.slides.some(slide => slide.id === id)) return;
+    event.preventDefault();
+    selectSlide(id, {commit:true, step:0});
+  });
   $('body-editor').addEventListener('paste', async event => {
     const images = [...(event.clipboardData?.items || [])].filter(item => item.type.startsWith('image/')).map(item => item.getAsFile()).filter(Boolean);
     if (!images.length) return;
@@ -11237,8 +11267,7 @@ function setupEvents() {
     /* Cmd+Option+Up/Down (Ctrl+Alt elsewhere): previous/next slide in the editor, also while typing, as the
        arrows of the slide-ID bar do (hidden slides included, no reveal steps). A slide ID being typed is
        applied first, as leaving its field would. */
-    const mac = /Mac|iPhone|iPad/.test(navigator.platform || '');
-    const slideKeys = event.altKey && !event.shiftKey && (mac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey);
+    const slideKeys = event.altKey && !event.shiftKey && commandModifier(event);
     if (slideKeys && state.editMode && !modal && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
       event.preventDefault();
       if (document.activeElement === $('editor-slide-id')) $('editor-slide-id').blur();
@@ -11573,7 +11602,25 @@ function scheduleHighlight() {
     const editor = $('body-editor'), layer = $('body-highlight');
     layer.innerHTML = document.documentElement.dataset.highlight === 'on' ? highlightSlideText(editor.value) : '';
     layer.scrollTop = editor.scrollTop;
+    updateLinkHover();
   });
+}
+/* A slide link under the mouse in the slide text is underlined in the coloured copy, and the box's
+   tooltip says how to follow it; with Cmd (Ctrl) held the pointer is a hand. The links are found in the
+   coloured copy, which lies exactly under the text, so this needs syntax colours on. The Cmd+click
+   itself is handled in setupEvents. */
+const linkHover = {pointer: null, span: null, modifier: false};
+function updateLinkHover() {
+  const editor = $('body-editor'), {pointer} = linkHover;
+  let found = null;
+  if (pointer) for (const span of $('body-highlight').querySelectorAll('.hl-link')) {
+    if (!span.textContent.includes('](#')) continue;
+    if ([...span.getClientRects()].some(r => pointer.x >= r.left && pointer.x <= r.right && pointer.y >= r.top && pointer.y <= r.bottom)) { found = span; break; }
+  }
+  if (linkHover.span !== found) { linkHover.span?.classList.remove('hl-link-hover'); found?.classList.add('hl-link-hover'); linkHover.span = found; }
+  const title = found ? `${IS_APPLE ? 'Cmd' : 'Ctrl'}+click to open this slide` : '';
+  if (editor.title !== title) editor.title = title;
+  editor.style.cursor = found && linkHover.modifier ? 'pointer' : '';
 }
 function setupHighlight() {
   const editor = $('body-editor'), layer = $('body-highlight');
@@ -11584,6 +11631,14 @@ function setupHighlight() {
   editor.addEventListener('input', scheduleHighlight);
   editor.addEventListener('scroll', () => { layer.scrollTop = editor.scrollTop; layer.scrollLeft = editor.scrollLeft; });
   new ResizeObserver(scheduleHighlight).observe(editor);
+  editor.addEventListener('mousemove', event => { linkHover.pointer = {x: event.clientX, y: event.clientY}; linkHover.modifier = commandModifier(event); updateLinkHover(); });
+  editor.addEventListener('mouseleave', () => { linkHover.pointer = null; updateLinkHover(); });
+  editor.addEventListener('scroll', () => { if (linkHover.pointer) updateLinkHover(); });
+  ['keydown', 'keyup'].forEach(type => document.addEventListener(type, event => {
+    if (!linkHover.pointer || (event.key !== 'Meta' && event.key !== 'Control')) return;
+    linkHover.modifier = commandModifier(event);
+    updateLinkHover();
+  }));
   scheduleHighlight();
 }
 
