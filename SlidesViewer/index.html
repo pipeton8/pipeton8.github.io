@@ -5647,7 +5647,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 416e0937a9b6 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 8746b1c67bfa by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -5746,7 +5746,7 @@ window.ModernSlidesEditor = (() => {
   <main id="editor-main">
     <div id="workspace">
       <section id="author-pane">
-        <div id="editor-slide-bar"><label for="editor-slide-id">Slide ID</label><input id="editor-slide-id" type="text" spellcheck="false" autocomplete="off" title="Slide ID: type a new one and press Enter to rename the slide; links to it are updated" aria-label="Slide ID"><span class="slide-nav"><button id="editor-prev-slide" type="button" title="Previous slide" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button><span id="editor-slide-position" aria-live="polite"></span><button id="editor-next-slide" type="button" title="Next slide" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button></span></div>
+        <div id="editor-slide-bar"><label for="editor-slide-id">Slide ID</label><input id="editor-slide-id" type="text" spellcheck="false" autocomplete="off" title="Slide ID: type a new one and press Enter to rename the slide; links to it are updated" aria-label="Slide ID"><span class="slide-nav"><button id="editor-prev-slide" type="button" title="Previous slide (Cmd+Option+↑, Ctrl+Alt+↑)" aria-label="Previous slide" aria-keyshortcuts="Meta+Alt+ArrowUp Control+Alt+ArrowUp"><i class="fa-solid fa-chevron-left"></i></button><span id="editor-slide-position" aria-live="polite"></span><button id="editor-next-slide" type="button" title="Next slide (Cmd+Option+↓, Ctrl+Alt+↓)" aria-label="Next slide" aria-keyshortcuts="Meta+Alt+ArrowDown Control+Alt+ArrowDown"><i class="fa-solid fa-chevron-right"></i></button></span></div>
         <div id="edit-split">
         <div id="body-editor-wrap">
           <pre id="body-highlight" aria-hidden="true"></pre>
@@ -10699,7 +10699,9 @@ function alignSelection(align) {
     replaceEditorText(textarea, replacement, lineStart, lineEnd);
     textarea.setSelectionRange(lineStart, lineStart + replacement.length);
   } else {
-    const beforeText = value.slice(0, lineStart);
+    /* The lines above the selection, without the break that ends the last of them (which would add an
+       empty line and stop the search for the block's directive before it starts). */
+    const beforeText = value.slice(0, Math.max(0, lineStart - 1));
     const beforeLines = beforeText.split('\n');
     let target = beforeLines.length - 1;
     while (target >= 0 && !matchDirective(beforeLines[target])) {
@@ -11231,6 +11233,17 @@ function setupEvents() {
       if (commandKey === 's' && !event.shiftKey) { event.preventDefault(); saveDeck(); return; }
       if (commandKey === 's' && event.shiftKey) { event.preventDefault(); downloadPortableDeck(); return; }
       if (commandKey === 'p') { event.preventDefault(); preparePrint(false); return; }
+    }
+    /* Cmd+Option+Up/Down (Ctrl+Alt elsewhere): previous/next slide in the editor, also while typing, as the
+       arrows of the slide-ID bar do (hidden slides included, no reveal steps). A slide ID being typed is
+       applied first, as leaving its field would. */
+    const mac = /Mac|iPhone|iPad/.test(navigator.platform || '');
+    const slideKeys = event.altKey && !event.shiftKey && (mac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey);
+    if (slideKeys && state.editMode && !modal && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      event.preventDefault();
+      if (document.activeElement === $('editor-slide-id')) $('editor-slide-id').blur();
+      editorStepSlide(event.key === 'ArrowUp' ? -1 : 1);
+      return;
     }
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (modal || inEditorField) return;
