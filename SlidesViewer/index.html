@@ -627,6 +627,24 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   font-weight: 700;
 }
 .block-table tbody tr:nth-child(even) td { background: var(--table-row-alt); }
+/* A header cell spanning columns above another header row: a short rule under it (\cmidrule). Only
+   the background image is set, so each theme keeps its header colour. */
+.slide-frame .block-table th.table-cmidrule {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: calc(100% - .6em) max(1px, .06cqw);
+  background-position: 50% 100%;
+  background-repeat: no-repeat;
+}
+.block-table-missing {
+  margin: calc(var(--u) * .18) 0;
+  padding: calc(var(--u) * .5);
+  border: max(1px, .12cqw) dashed currentColor;
+  opacity: .65;
+  font-family: var(--sans-font);
+  font-size: calc(var(--u) * .6);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
 
 .future-step, .past-step { visibility: hidden !important; }
 .slide-frame[data-overflow="true"]::after {
@@ -5690,7 +5708,7 @@ body.dragging-file #drop-overlay { display:grid; }
 }
 
 </style>
-<!-- Deployed from ModernSlides 5db148c4dd59 by tools/deploy-site.mjs; edit the site settings, not this file. -->
+<!-- Deployed from ModernSlides 4bd6b214978c by tools/deploy-site.mjs; edit the site settings, not this file. -->
 <meta name="robots" content="noindex, nofollow">
 <script>window.MODERNSLIDES_SITE = {"storage":"ask","linkedDecks":"same-origin","publish":false,"start":"blank","editorTheme":"slate"};</script>
 <script>
@@ -6350,7 +6368,7 @@ function validateBlockInput(block, path, errors) {
   const specific = {
     title:['content'], text:['size','content'], list:['ordered','size','start','progressive','items'], quote:['content','source'],
     image:['src','caption','width','fit','focus'], break:['lines'], rule:[], website:['src','poster'],
-    code:['lang','content'], columns:['widths','valign','columns'], table:['widths','headerRows','headerCols','columnAlign','rows'],
+    code:['lang','content'], columns:['widths','valign','columns'], table:['src','widths','headerRows','headerCols','columnAlign','rows'],
     comment:['content']
   };
   if (!BLOCK_TYPES.has(block.type)) { errors.push(`${path}.type is unsupported.`); return; }
@@ -6366,6 +6384,7 @@ function validateBlockInput(block, path, errors) {
   if (block.type === 'list' && Array.isArray(block.items)) {
     block.items.forEach((item,index) => collectUnknownKeys(item, new Set(['content','step','until','number']), `${path}.items[${index}]`, errors));
   }
+  if (block.type === 'table' && block.src != null && typeof block.src !== 'string') errors.push(`${path}.src must be a string (a table file's path).`);
   if (block.type === 'table' && Array.isArray(block.rows)) {
     block.rows.forEach((row,rowIndex) => {
       if (!Array.isArray(row)) errors.push(`${path}.rows[${rowIndex}] must be an array.`);
@@ -6637,6 +6656,7 @@ const state = {
   editMode: false,
   editorLoading: false,
   editorWarnings: [],
+  parseWarnings: [],
   undoStack: [],
   redoStack: [],
   renderRevision: 0,
@@ -6711,6 +6731,8 @@ function normalizeBlock(block) {
       out.columns = Array.isArray(out.columns) ? out.columns.map(col => ({ blocks: Array.isArray(col?.blocks) ? col.blocks.map(normalizeBlock) : [] })) : [];
       break;
     case 'table':
+      /* src: the rows come from that file (rows are then ignored); an empty src is dropped. */
+      if (typeof out.src === 'string' && out.src.trim()) out.src = out.src.trim(); else delete out.src;
       out.widths = Array.isArray(out.widths) ? out.widths.map(n => Math.max(.01, Number(n) || 1)) : [];
       out.headerRows = Math.max(0, Math.trunc(Number(out.headerRows) || 0));
       out.headerCols = Math.max(0, Math.trunc(Number(out.headerCols) || 0));
@@ -7182,6 +7204,82 @@ function decodeStructuredTableCell(value) {
     return {blocks:Array.isArray(blocks) ? blocks.map(normalizeBlock) : []};
   } catch { return null; }
 }
+/* One row of a Table block: cells split on | outside math (\| is a literal pipe). In any table a cell
+   holding only < joins the cell to its left (a column span; \< is a literal <), and <br> in a cell
+   breaks its line; the renderer does both. */
+function parseTableRow(line) {
+  return splitOutsideMath(line, '|').map(cell => { const value = cell.trim(); return decodeStructuredTableCell(value) || value; });
+}
+const isTableSpanCell = cell => typeof cell === 'string' && cell.trim() === '<';
+/* The rows of a table read from a file (Table(...): path), by the file's extension:
+   - .csv / .tsv: delimited; a quoted field may hold the delimiter, doubled quotes, and line breaks,
+     which become <br>; the ="..." guard some exporters write for Excel is removed;
+   - .md / .markdown: a Markdown pipe table; the outer pipes and the |---| line are dropped, and the
+     line's colons give column alignment (used when the slide sets no columnAlign);
+   - anything else (.txt): the rows exactly as written inside Table ... End, // comment lines included.
+   Returns {rows, columnAlign} (columnAlign is [] unless a Markdown file sets it). */
+function tableFileFormat(name) {
+  const path = String(name || '').split(/[?#]/, 1)[0].toLowerCase();
+  if (/\.csv$/.test(path)) return 'csv';
+  if (/\.(tsv|tab)$/.test(path)) return 'tsv';
+  if (/\.(md|markdown)$/.test(path)) return 'md';
+  return 'rows';
+}
+function parseDelimitedTable(text, delimiter) {
+  const rows = [];
+  let row = [], field = '', quoted = false, inQuotes = false;
+  const endField = () => {
+    let value = quoted ? field : field.trim();
+    value = value.replace(/^="([\s\S]*)"$/, '$1').trim().replace(/\n/g, '<br>');
+    row.push(value);
+    field = ''; quoted = false;
+  };
+  const endRow = () => { endField(); rows.push(row); row = []; };
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch !== '"') field += ch;
+      else if (text[i + 1] === '"') { field += '"'; i++; }
+      else inQuotes = false;
+    } else if (ch === '"' && !quoted && !field.trim()) { inQuotes = true; quoted = true; field = ''; }
+    else if (ch === delimiter) endField();
+    else if (ch === '\n') endRow();
+    else if (!quoted) field += ch;
+  }
+  if (field || row.length || quoted) endRow();
+  return rows.filter(cells => !(cells.length === 1 && !cells[0]));
+}
+function parseMarkdownTable(text) {
+  const rows = [];
+  let columnAlign = [], separator = false;
+  text.split('\n').forEach(line => {
+    let value = line.trim();
+    if (!value) return;
+    if (value.startsWith('|')) value = value.slice(1);
+    if (/(^|[^\\])\|$/.test(value)) value = value.slice(0, -1);
+    const cells = splitOutsideMath(value, '|').map(cell => cell.trim());
+    /* The |---| line follows the header row; a later row of dashes is data (e.g. "-" for none). */
+    if (rows.length === 1 && !separator && cells.every(cell => /^:?-+:?$/.test(cell))) {
+      separator = true;
+      if (cells.some(cell => cell.includes(':'))) columnAlign = cells.map(cell => cell.startsWith(':') && cell.endsWith(':') ? 'c' : cell.endsWith(':') ? 'r' : 'l');
+      return;
+    }
+    rows.push(cells);
+  });
+  return {rows, columnAlign};
+}
+function parseTableFile(text, name = '') {
+  const source = String(text ?? '').replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  const format = tableFileFormat(name);
+  if (format === 'csv' || format === 'tsv') return {rows:parseDelimitedTable(source, format === 'csv' ? ',' : '\t'), columnAlign:[]};
+  if (format === 'md') return parseMarkdownTable(source);
+  const rows = [];
+  source.split('\n').forEach(line => {
+    if (!line.trim() || isStepMarkerLine(line) || line.trim() === 'End') return;
+    rows.push(isCommentLine(line) ? [line.trim()] : parseTableRow(line));
+  });
+  return {rows, columnAlign:[]};
+}
 function parseSequence(ctx, stopTokens = new Set(), depth = 0, expectedStepEnd = null) {
   const blocks = [];
   while (ctx.index < ctx.lines.length) {
@@ -7284,15 +7382,24 @@ function parseSequence(ctx, stopTokens = new Set(), depth = 0, expectedStepEnd =
 
     if (directive.name === 'table') {
       const rows = [];
-      while (ctx.index < ctx.lines.length && ctx.lines[ctx.index].trim() !== 'End') {
-        const line = ctx.lines[ctx.index++];
-        if (!line.trim()) continue;
-        if (isCommentLine(line)) { rows.push([line.trim()]); continue; }
-        if (isStepMarkerLine(line)) { ctx.warnings.push(`Line ${ctx.index}: step regions cannot split individual table rows. Wrap the entire Table block instead.`); continue; }
-        rows.push(splitOutsideMath(line, '|').map(cell => { const value = cell.trim(); const structured = decodeStructuredTableCell(value); return structured || value; }));
+      /* Table(...): path reads its rows from a file (see parseTableFile) and has no rows or End. An
+         End right after it, written out of habit, is dropped, except inside Columns, whose End it is. */
+      const src = directive.value.trim();
+      if (src) {
+        let next = ctx.index;
+        while (next < ctx.lines.length && !ctx.lines[next].trim()) next++;
+        if (depth === 0 && next < ctx.lines.length && ctx.lines[next].trim() === 'End') ctx.index = next + 1;
+      } else {
+        while (ctx.index < ctx.lines.length && ctx.lines[ctx.index].trim() !== 'End') {
+          const line = ctx.lines[ctx.index++];
+          if (!line.trim()) continue;
+          if (isCommentLine(line)) { rows.push([line.trim()]); continue; }
+          if (isStepMarkerLine(line)) { ctx.warnings.push(`Line ${ctx.index}: step regions cannot split individual table rows. Wrap the entire Table block instead.`); continue; }
+          rows.push(parseTableRow(line));
+        }
+        if (ctx.index < ctx.lines.length && ctx.lines[ctx.index].trim() === 'End') ctx.index++;
+        else ctx.warnings.push(`Line ${lineNumber}: Table block reached the end of the slide without End.`);
       }
-      if (ctx.index < ctx.lines.length && ctx.lines[ctx.index].trim() === 'End') ctx.index++;
-      else ctx.warnings.push(`Line ${lineNumber}: Table block reached the end of the slide without End.`);
       const widths = parseWidths(parsedArgs.args.widths || positional);
       const headerRows = Math.max(0, Math.trunc(Number(parsedArgs.args.header ?? 1) || 0));
       const headerCols = Math.max(0, Math.trunc(Number(parsedArgs.args.headercol ?? 0) || 0));
@@ -7301,7 +7408,7 @@ function parseSequence(ctx, stopTokens = new Set(), depth = 0, expectedStepEnd =
         columnAlignValue = parsedArgs.args.align;
         delete props.align;
       }
-      const block = {type:'table', widths, headerRows, headerCols, columnAlign:parseAlignList(columnAlignValue), rows, ...props};
+      const block = {type:'table', ...(src ? {src} : {}), widths, headerRows, headerCols, columnAlign:parseAlignList(columnAlignValue), rows, ...props};
       delete block.progressive;
       blocks.push(block);
       continue;
@@ -7485,7 +7592,8 @@ function renderBlockText(block, indent = 0) {
       extras.push(`header=${block.headerRows ?? 1}`);
       if (block.headerCols) extras.push(`headercol=${block.headerCols}`);
       if (block.columnAlign?.length) extras.push(`columnAlign=${block.columnAlign.join(',')}`);
-      lines.push(`${pad}Table${joinArgs('', commonArgs(block, extras))}:`);
+      lines.push(`${pad}Table${joinArgs('', commonArgs(block, extras))}:${block.src ? ` ${block.src}` : ''}`);
+      if (block.src) break;
       block.rows.forEach(row => {
         if (isCommentRow(row)) { lines.push(`${pad}${row[0].trim()}`); return; }
         const cells = row.map(cell => escapePipesOutsideMath(typeof cell === 'string' ? cell : encodeStructuredTableCell(cell)));
@@ -7569,8 +7677,10 @@ function runRoundTripSelfTest() {
         {blocks:[{type:'text',size:'normal',content:'Right',step:3,until:4}]}
       ]},
       {type:'table',widths:[2,1],headerRows:1,headerCols:1,columnAlign:['l','r'],align:'center',step:2,rows:[
-        ['Name','Value'],['// Old | 1'],['\\// literal','2'],['A',{blocks:[{type:'text',size:'tiny',content:'Rich **cell**',step:0}]}]
-      ]}
+        ['Name','Value'],['// Old | 1'],['\\// literal','2'],['A',{blocks:[{type:'text',size:'tiny',content:'Rich **cell**',step:0}]}],
+        ['Spans','<'],['Two<br>lines','\\<']
+      ]},
+      {type:'table',src:'tables/results.csv',widths:[2,1,1],headerRows:2,headerCols:0,columnAlign:['l','r','r'],step:1,rows:[]}
     ]
   };
   const expected = normalizedBodyModel(fixture);
@@ -7582,7 +7692,7 @@ function runRoundTripSelfTest() {
 /* ---------- Inline renderer ---------- */
 function maskEscapes(text) {
   const tokens = [];
-  const masked = String(text ?? '').replace(/\\([*_|$:\\])/g, (_, value) => {
+  const masked = String(text ?? '').replace(/\\([*_|$:\\<])/g, (_, value) => {
     const token = `\uE200${tokens.length}\uE201`;
     tokens.push(value);
     return token;
@@ -7752,7 +7862,8 @@ function maskColorSpans(text) {
   }
   return {masked: out, colors};
 }
-function inlineMarkup(text) {
+/* `breaks` (table cells): <br> outside math is a line break; \<br> shows as written. */
+function inlineMarkup(text, {breaks = false} = {}) {
   /* First remove genuine math expressions from consideration. */
   const math = maskMathSegments(String(text ?? ''));
 
@@ -7764,6 +7875,7 @@ function inlineMarkup(text) {
   const linked = maskInlineLinksAndUrls(colored.masked);
 
   let html = formatInlineEmphasis(escapeHtml(linked.masked));
+  if (breaks) html = html.replace(/&lt;br\s*\/?&gt;/gi, '<br>');
 
   linked.tokens.forEach((value, index) => {
     html = html
@@ -7872,6 +7984,7 @@ function commitEditor({record = true, rerender = true} = {}) {
     steps: parsed.steps
   };
   const changed = JSON.stringify(oldSlide) !== JSON.stringify(newSlide);
+  state.parseWarnings = parsed.warnings;
   showWarnings(parsed.warnings.concat(lintSlide(newSlide)));
   if (!changed) { state.dirty = false; return false; }
   if (record) pushUndo();
@@ -7905,8 +8018,14 @@ function loadEditorsFromCurrent() {
   $('toggle-hidden').innerHTML = slide.hidden ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
   $('toggle-hidden').title = slide.hidden ? 'Show slide' : 'Hide slide';
   state.currentStep = Math.min(state.currentStep, slide.steps || 0);
+  state.parseWarnings = [];
   showWarnings(lintSlide(slide));
   state.editorLoading = false;
+}
+/* The editor's warnings again, once a table file the slide reads has loaded or changed. */
+function relintEditor() {
+  const slide = state.deck?.slides.find(item => item.id === state.editorSlideId);
+  if (slide) showWarnings((state.parseWarnings || []).concat(lintSlide(slide)));
 }
 function lintSlide(deckSlide) {
   const slide = displaySlide(deckSlide);
@@ -7918,7 +8037,13 @@ function lintSlide(deckSlide) {
     if (block.type === 'list') lists.push(block);
     if (block.type === 'columns') block.columns.forEach(column => walk(column.blocks));
     if (block.type === 'columns' && block.columns.length > 3) warnings.push('More than three columns will usually be crowded.');
+    if (block.type === 'table' && block.file?.error) warnings.push(`Table file ${block.src} could not be loaded (${block.file.error}).`);
     if (block.type === 'table' && (block.rows.length > 9 || Math.max(0, ...block.rows.map(row => row.length)) > 6)) warnings.push('Large table may be difficult to read.');
+    if (block.type === 'table') {
+      const columns = Math.max(0, ...block.rows.map(row => row.length));
+      if (block.widths?.length && columns && block.widths.length !== columns) warnings.push(`Table widths gives ${block.widths.length} widths for ${columns} columns, so the columns are equally wide.`);
+      if (block.rows.some(row => isTableSpanCell(row[0]))) warnings.push('A table row starts with <, which has no cell to its left to join; it shows as <.');
+    }
     if (block.type === 'text' && typeof block.size === 'number' && block.size < .5) warnings.push('Text scale below .5 is too small for most projection and print.');
   });
   walk(slide.blocks);
@@ -7954,8 +8079,10 @@ function displayBlocks(blocks) {
       }
       case 'columns': return [{...block, columns: block.columns.map(column => ({...column, blocks: displayBlocks(column.blocks)}))}];
       case 'table': {
+        const table = block.src ? tableFromFile(block) : block;
+        if (table.file) return [table];
         const cell = value => value && typeof value === 'object' && Array.isArray(value.blocks) ? {...value, blocks: displayBlocks(value.blocks)} : unescapeCommentMark(value);
-        return [{...block, rows: block.rows.filter(row => !isCommentRow(row)).map(row => row.map(cell))}];
+        return [{...table, rows: table.rows.filter(row => !isCommentRow(row)).map(row => row.map(cell))}];
       }
       default: return [block];
     }
@@ -7963,6 +8090,83 @@ function displayBlocks(blocks) {
 }
 function displaySlide(slide) {
   return {...slide, header: hideCommentLines(slide.header), aside: hideCommentLines(slide.aside), blocks: displayBlocks(slide.blocks)};
+}
+
+/* ---------- Tables read from files ----------
+   Table(...): path takes its rows from a file that a script writes (parseTableFile reads it). The
+   path resolves like an image's, against the deck's URL. The files are fetched before the slides that
+   use them render and kept in tableFiles by URL; they are fetched again whenever the window regains
+   focus, and every few seconds while the editor server serves the deck, so rerunning the script
+   updates the slides. displayBlocks puts the rows in the slide's display copy. */
+const TABLE_FILE_TIMEOUT = 8000;
+const TABLE_FILE_POLL = 4000;
+const tableFiles = new Map();
+const tableFetches = new Map();
+let tableRefreshRunning = false;
+function tableFileUrl(src) { return resolveSource(src); }
+function tableFromFile(block) {
+  const url = tableFileUrl(block.src);
+  const entry = url ? tableFiles.get(url) : {status:'error', error:'no such file'};
+  if (entry?.status !== 'ok') return {...block, rows:[], file:{error:entry?.error || ''}};
+  return {...block, rows:entry.rows, columnAlign:block.columnAlign?.length ? block.columnAlign : entry.columnAlign};
+}
+function tableFileUrls(blocks, found = new Set()) {
+  (blocks || []).forEach(block => {
+    if (block.type === 'table' && block.src && tableFileUrl(block.src)) found.add(tableFileUrl(block.src));
+    if (block.type === 'columns') block.columns.forEach(column => tableFileUrls(column.blocks, found));
+  });
+  return found;
+}
+/* Resolves to whether the file's rows (or its error) changed. */
+async function fetchTableFile(url) {
+  const previous = tableFiles.get(url);
+  const controller = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), TABLE_FILE_TIMEOUT) : null;
+  let entry;
+  try {
+    const response = await fetch(url, {cache:'no-store', signal:controller?.signal});
+    if (!response.ok) throw new Error(`${response.status}${response.statusText ? ` ${response.statusText}` : ''}`);
+    const text = await response.text();
+    if (previous?.status === 'ok' && previous.text === text) return false;
+    entry = {status:'ok', text, ...parseTableFile(text, url)};
+  } catch (error) {
+    entry = {status:'error', error:error?.name === 'AbortError' ? 'timed out' : (error?.message || 'could not be read')};
+    if (previous?.status === 'error' && previous.error === entry.error) return false;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+  tableFiles.set(url, entry);
+  return true;
+}
+function loadTableFile(url) {
+  if (!tableFetches.has(url)) tableFetches.set(url, fetchTableFile(url).finally(() => tableFetches.delete(url)));
+  return tableFetches.get(url);
+}
+/* Fetches the table files of these slides that are not loaded yet (all of them `again`); resolves
+   to the URLs whose contents changed. */
+async function loadTableFiles(slides, {again = false} = {}) {
+  const urls = new Set();
+  (slides || []).forEach(slide => tableFileUrls(slide?.blocks, urls));
+  const pending = [...urls].filter(url => again || !tableFiles.has(url));
+  const changed = await Promise.all(pending.map(url => loadTableFile(url).then(result => result ? url : null)));
+  return changed.filter(Boolean);
+}
+async function refreshTableFiles() {
+  if (tableRefreshRunning || !state.deck || document.hidden) return;
+  tableRefreshRunning = true;
+  try {
+    const changed = new Set(await loadTableFiles(state.deck.slides, {again:true}));
+    if (!changed.size) return;
+    const ids = state.deck.slides.filter(slide => [...tableFileUrls(slide.blocks)].some(url => changed.has(url))).map(slide => slide.id);
+    if (ids.length) await scheduleRender('table files', {full:false, slideIds:ids});
+  } finally {
+    tableRefreshRunning = false;
+  }
+}
+function setupTableFileRefresh() {
+  window.addEventListener('focus', refreshTableFiles);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshTableFiles(); });
+  setInterval(() => { if (state.diskDeck && tableFiles.size) refreshTableFiles(); }, TABLE_FILE_POLL);
 }
 
 /* ---------- Canonical renderer ---------- */
@@ -8182,6 +8386,14 @@ function renderBlock(block, doc = document) {
       break;
     }
     case 'table': {
+      /* A table whose file did not load (displayBlocks sets `file`) shows where it would be. */
+      if (block.file) {
+        element = doc.createElement('div');
+        element.className = 'slide-block block-table-missing';
+        element.dataset.src = block.src;
+        element.textContent = block.file.error ? `Table not loaded: ${block.src} (${block.file.error})` : `Loading table ${block.src}…`;
+        break;
+      }
       element = doc.createElement('table');
       element.className = 'slide-block block-table';
       const maxCols = Math.max(0, ...block.rows.map(row => row.length));
@@ -8199,14 +8411,25 @@ function renderBlock(block, doc = document) {
       const tbody = doc.createElement('tbody');
       block.rows.forEach((row, rowIndex) => {
         const tr = doc.createElement('tr');
+        let previous = null;
         row.forEach((cell, colIndex) => {
+          /* A < cell widens the cell to its left: centred, and in a header row above another header
+             row underlined, like Booktabs' \cmidrule. A < in the first column has nothing to join. */
+          if (previous && isTableSpanCell(cell)) {
+            previous.colSpan += 1;
+            previous.classList.add('table-span');
+            previous.style.textAlign = 'center';
+            if (previous.tagName === 'TH' && rowIndex < (block.headerRows || 0) - 1) previous.classList.add('table-cmidrule');
+            return;
+          }
           const header = rowIndex < (block.headerRows || 0) || colIndex < (block.headerCols || 0);
           const td = doc.createElement(header ? 'th' : 'td');
           if (cell && typeof cell === 'object' && Array.isArray(cell.blocks)) cell.blocks.forEach(child => td.appendChild(renderBlock(child, doc)));
-          else td.innerHTML = inlineMarkup(cell);
+          else td.innerHTML = inlineMarkup(cell, {breaks:true});
           const align = block.columnAlign?.[colIndex] || 'l';
           td.style.textAlign = ({l:'left',c:'center',r:'right'}[align] || 'left');
           tr.appendChild(td);
+          previous = td;
         });
         tbody.appendChild(tr);
       });
@@ -8617,16 +8840,19 @@ function mountFrame(slot, id, step, {showOverflow = false, liveWebsites = false}
 }
 async function renderAllSlides() {
   const bank = $('render-bank');
+  const tablesChanged = await loadTableFiles(state.deck.slides);
   if (window.MathJax?.typesetClear) { try { window.MathJax.typesetClear([bank]); } catch {} }
   bank.replaceChildren();
   state.deck.slides.forEach(slide => bank.appendChild(buildCanonicalFrame(slide)));
   await typeset(bank);
   await waitForAssets(bank);
   [...bank.children].forEach(fitCanonicalFrame);
+  if (tablesChanged.length) relintEditor();
 }
 async function renderSlideIds(ids) {
   const bank = $('render-bank');
   const rendered = [];
+  const tablesChanged = await loadTableFiles(ids.map(id => state.deck.slides.find(item => item.id === id)));
   for (const id of ids) {
     const slide = state.deck.slides.find(item => item.id === id);
     if (!slide) continue;
@@ -8639,6 +8865,7 @@ async function renderSlideIds(ids) {
   for (const frame of rendered) await typeset(frame);
   await waitForAssets({querySelectorAll: selector => rendered.flatMap(frame => [...frame.querySelectorAll(selector)]), ownerDocument:document});
   rendered.forEach(fitCanonicalFrame);
+  if (tablesChanged.length) relintEditor();
 }
 function setRenderStatus(text = '') { if ($('render-status')) $('render-status').textContent = text; }
 function updateRenderDiagnostics() {
@@ -9299,7 +9526,8 @@ async function exportPdf({steps = false} = {}) {
                                                   body:JSON.stringify({path:disk.path, steps, letter:!!editorPrefs.readPrefs().printLetter})});
     const reply = await response.json().catch(() => ({}));
     if (response.ok && reply.file) {
-      const missing = Array.isArray(reply.missing) && reply.missing.length ? ` · missing images: ${reply.missing.join(', ')}` : '';
+      const missing = (Array.isArray(reply.missing) && reply.missing.length ? ` · missing images: ${reply.missing.join(', ')}` : '')
+        + (Array.isArray(reply.missingTables) && reply.missingTables.length ? ` · missing tables: ${reply.missingTables.join(', ')}` : '');
       setStatus(`Saved ${reply.file} (${reply.pages} page${reply.pages === 1 ? '' : 's'})${missing}`, missing ? 'error' : 'saved');
     } else if (response.status === 404 || response.status === 405) {
       setStatus('PDF not exported: this editor server is older than PDF export; restart it from an updated ModernSlides', 'error');
@@ -9542,10 +9770,10 @@ async function loadFile(file, {fileHandle = null} = {}) {
   const relative = deckRelativeSources(state.deck);
   if (relative.length) {
     await state.autosaveChain;
-    setStatus(`${relative.length} image${relative.length === 1 ? '' : 's'} with paths relative to the deck cannot load from an opened file (e.g. ${relative[0]}): pack the deck, or open it by URL with ?deck=`, 'error');
+    setStatus(`${relative.length} file${relative.length === 1 ? '' : 's'} (images or tables) with paths relative to the deck cannot load from an opened file (e.g. ${relative[0]}): pack the deck, or open it by URL with ?deck=`, 'error');
   }
 }
-/* Local image paths that resolve against the deck's own folder (not embedded, remote, or root-relative). */
+/* Local image and table-file paths that resolve against the deck's own folder (not embedded, remote, or root-relative). */
 function deckRelativeSources(deck) {
   const found = new Set();
   const visit = src => {
@@ -9555,6 +9783,7 @@ function deckRelativeSources(deck) {
   const walk = blocks => (blocks || []).forEach(block => {
     if (block.type === 'image') visit(block.src);
     if (block.type === 'website') visit(block.poster);
+    if (block.type === 'table') visit(block.src);
     if (block.type === 'columns') block.columns.forEach(column => walk(column.blocks));
     if (block.type === 'table') block.rows.forEach(row => row.forEach(cell => { if (cell && typeof cell === 'object') walk(cell.blocks); }));
   });
@@ -9764,8 +9993,24 @@ async function downloadPortableDeck() {
       return rawSource;
     }
   };
+  /* A table read from a file gets the file's current rows, so the copy needs no file. */
+  let tablesInlined = 0;
+  const inlineTable = async (block, context) => {
+    try {
+      const response = await fetch(new URL(resolveSource(block.src)).href, {cache:'no-store'});
+      if (!response.ok) throw new Error(String(response.status));
+      const parsed = parseTableFile(await response.text(), response.url || block.src);
+      block.rows = parsed.rows;
+      if (!block.columnAlign?.length && parsed.columnAlign.length) block.columnAlign = parsed.columnAlign;
+      delete block.src;
+      tablesInlined += 1;
+    } catch (error) {
+      missing.push(`${context} table: ${block.src} (${error.message})`);
+    }
+  };
   const walk = async (blocks, context) => {
     for (const block of blocks || []) {
+      if (block.type === 'table' && block.src) await inlineTable(block, context);
       if (block.type === 'image') block.src = await embed(block.src, context);
       if (block.type === 'website' && block.poster) block.poster = await embed(block.poster, `${context} poster`);
       if (block.type === 'columns') for (const column of block.columns) await walk(column.blocks, context);
@@ -9779,14 +10024,15 @@ async function downloadPortableDeck() {
     await walk(slide.blocks, `slide ${slide.id}`);
   }
   if (missing.length) {
-    setStatus(`Portable copy NOT made: ${missing.length} image${missing.length === 1 ? '' : 's'} could not be loaded`, 'error');
-    alert(`These images could not be loaded, so no portable copy was made:\n\n${missing.slice(0, 12).join('\n')}${missing.length > 12 ? `\n… and ${missing.length - 12} more` : ''}\n\nOpen the deck by its URL (?deck= or the editor server) so its images can be reached.`);
+    setStatus(`Portable copy NOT made: ${missing.length} file${missing.length === 1 ? '' : 's'} could not be loaded`, 'error');
+    alert(`These images or table files could not be loaded, so no portable copy was made:\n\n${missing.slice(0, 12).join('\n')}${missing.length > 12 ? `\n… and ${missing.length - 12} more` : ''}\n\nOpen the deck by its URL (?deck= or the editor server) so its files can be reached.`);
     return false;
   }
   const name = `${String(state.filename || slugify(deck.meta.title, 'presentation')).replace(/\.json$/i, '').replace(/\.portable$/i, '')}.portable.json`;
   downloadText(JSON.stringify(deck, null, 2) + '\n', name);
   const size = (bytesTotal / 1048576).toFixed(1);
-  setStatus(`Downloaded ${name}: ${embedded.size} image${embedded.size === 1 ? '' : 's'} embedded (${size} MB)${remote.size ? ` · ${remote.size} left as web links` : ''}`, remote.size ? 'error' : 'saved');
+  const tables = tablesInlined ? `, ${tablesInlined} table${tablesInlined === 1 ? '' : 's'} copied from ${tablesInlined === 1 ? 'its file' : 'their files'}` : '';
+  setStatus(`Downloaded ${name}: ${embedded.size} image${embedded.size === 1 ? '' : 's'} embedded (${size} MB)${tables}${remote.size ? ` · ${remote.size} left as web links` : ''}`, remote.size ? 'error' : 'saved');
   return true;
 }
 async function canWriteHandle(handle) {
@@ -11614,7 +11860,7 @@ const HIGHLIGHT_DIRECTIVES = new Set([...DIRECTIVES, 'speakernote', 'printnote']
 const hlSpan = (kind, text) => text ? `<span class="hl-${kind}">${escapeHtml(text)}</span>` : '';
 /* Inline markup: math, escapes, [text]{color}, links, bold/italic, bare URLs. Colours only, never a
    change of weight or style, so the coloured copy keeps the text box's exact layout. */
-const HIGHLIGHT_INLINE = /(\$\$[\s\S]*?\$\$|\\\([\s\S]*?\\\)|(?<!\\)\$(?!\s)(?:\\.|[^$\n])+?(?<!\\)\$)|(\\[*_|$:\\])|\[([^\[\]\n]*)\]\{([^{}\n]*)\}|(\\button(?:\([^)\n]*\))?\[[^\]\n]*\]\([^)\s]*\)|\[[^\]\n]*\]\([^)\s]*\))|(\*\*\*[^*\n]+\*\*\*|\*\*[^*\n]+\*\*|\*[^*\s][^*\n]*\*|(?<![A-Za-z0-9])_[^_\n]+_(?![A-Za-z0-9]))|(https?:\/\/[^\s<>]+)/g;
+const HIGHLIGHT_INLINE = /(\$\$[\s\S]*?\$\$|\\\([\s\S]*?\\\)|(?<!\\)\$(?!\s)(?:\\.|[^$\n])+?(?<!\\)\$)|(\\[*_|$:\\<])|\[([^\[\]\n]*)\]\{([^{}\n]*)\}|(\\button(?:\([^)\n]*\))?\[[^\]\n]*\]\([^)\s]*\)|\[[^\]\n]*\]\([^)\s]*\))|(\*\*\*[^*\n]+\*\*\*|\*\*[^*\n]+\*\*|\*[^*\s][^*\n]*\*|(?<![A-Za-z0-9])_[^_\n]+_(?![A-Za-z0-9]))|(https?:\/\/[^\s<>]+)/g;
 function highlightInline(text) {
   let out = '', last = 0;
   for (const match of String(text).matchAll(HIGHLIGHT_INLINE)) {
@@ -11653,7 +11899,7 @@ function highlightSlideText(text) {
       const [, indent, name, args = '', colon, rest] = directive;
       const kind = name.toLowerCase();
       if (kind === 'code') code = true;
-      if (kind === 'table') table = true;
+      if (kind === 'table' && !rest.trim()) table = true;
       if (kind === 'columns') columns = true;
       return escapeHtml(indent) + hlSpan('directive', name) + hlSpan('args', args) + hlSpan('directive', colon) + (kind === 'code' ? hlSpan('code', rest) : highlightInline(rest));
     }
@@ -11756,6 +12002,7 @@ async function initialize() {
   setupHighlight();
   setupSlideIdField();
   setupEvents();
+  setupTableFileRefresh();
   registerOfflineSupport();
   $('publish-deck').hidden = !SITE.publish;
   /* A viewer that asks before remembering decks drops leftovers from a session that did not opt in. */

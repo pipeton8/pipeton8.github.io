@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VERSION = 'modernslides-shell-e4d870512d6f';
+const CACHE_VERSION = 'modernslides-shell-d1a98705f170';
 const RUNTIME_CACHE = 'modernslides-runtime-v1';
 const APP_SHELL = [
   './index.html',
@@ -80,7 +80,9 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  if (sameOrigin && /\.(?:json|txt)$/i.test(url.pathname)) {
+  /* Decks and table files (Table(...): path) change while the app is open: the network first, the
+     cached copy only offline. */
+  if (sameOrigin && /\.(?:json|txt|csv|tsv|tab|md|markdown)$/i.test(url.pathname)) {
     event.respondWith(networkFirst(request));
     return;
   }
